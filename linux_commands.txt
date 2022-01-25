@@ -1,0 +1,231 @@
+	Atalhos
+
+		Ctrl + l (limpar) / clear
+		Ctrl + r - buscar um comando executado no histórico
+		Ctrl + c - quit no processo sendo executado
+		Ctrl + d - finaliza um arquivo, com seu conteúdo digitado
+	
+	Comandos
+
+		whoami - usuário logado no sistema
+		id - nome do usuário logado no sistema + número de identificação
+		hostname - nome da máquina
+		hostnamectl - dados estátisticos da máquina
+		~ - diretório home do usuário
+		pwd - print work directory
+		/ - diretório raiz -> C:\
+		cd .. - change directory e volta um nível
+		ls - listar 
+		ls -l - listar com detalhes (lsitagem longa)
+		ls -la - listar com detalhes e arquivos ocultos
+		ls -lah - listar arquivos com detalhes, arquivos ocultos e leitura humana para o tamanho dos arquivos/diretórios
+		man <command> - manual
+		arquivo iniciado com . é um arquivo oculto ex. .arquivo01.txt
+		. - diretório atual
+		.. - diretório anterior
+		$ - usuário comum (sem direitos administrativos)
+		# - usuário super admin
+		tipos de arquivos
+			d - diretório ou pasta
+			l - link simbólico (atalho)
+			- (hífen) - arquivo regular / arquivo comum (arquivos de texto, imagem, som)
+		/root - diretório home do administrador (somente o root tem acesso)
+		su - abrir novas sessões de outros usuários
+			su - root (carregar as variáveis de ambiente do root)
+			exit - sai da sessão logado
+		shutdown -h now - desligar a máquina imediatamente (como root)
+		ls -l /var/ (listar outro diretorio)
+		ls -ld (listar uma propriedade específica do diretório)
+		ls -lR /var/ (listar o diretório /var e todos os sub-diretórios [recursivamente])
+		ls -l *.txt - listar todos os arquivos terminados por .txt
+		cd - - voltar para o último diretório
+		cd ~ - vai para o diretório home
+		mkdir dir01 dir02 -v - criação de diretórios, com log de execução
+		mkdir "arquivos de programas" - diretórios com espaços
+		mkdir -pv - criar diretório pai e filho ex.: mkdir -pv dir04/subdir
+		mkdir -pv dir05/{a,b,c} - criar diretório pai e filho
+		rmdir {diretorio} - remoção de diretório vazio
+		rm -rf {diretorio/sub} - remoção de diretório com conteúdo (r -> recursivo, f -> force)
+		rm {arquivo} - remoção de arquivo
+		touch - cria arquivo vazio
+		cp -v {origem} {destino} - cópia de arquivo 
+		cp -pv {origem} {destino} - preserva as permissões do arquivo
+		cp -prv {origem} {destino} - cópia de arquivo recursivamente
+		cp -v {origem} {destino}/novonome.txt - cópia de arquivo renomeando o arquivo
+		mv {arquivo} {diretório} - mover arquivo
+		mv {arquivo atual} {novo nome}- renomear arquivo
+		history - todos os comandos digitados pelo usuário
+		history -w - força a gravação de um arquivo no /root/.bash_history
+		history -c - limpa o histórico do usuário logado
+		ip a - IP na máquina (memória)
+		echo $HISTSIZE - tamanho de linhas no histórico
+		!{numero da linha} - executa o comando da linha X presente no history
+		help - todos os comandos definidos internamente
+		man man
+			   1   Programas executáveis ou comandos da shell
+			   2   Chamadas de sistema (funções fornecidas pelo kernel)
+			   3   Funções de biblioteca (funções dentro de bibliotecas de programas)
+			   4   Ficheiros especiais (habitualmente encontrados em /dev)
+			   5   Formatos de ficheiro e convenções e.g. /etc/passwd
+			   6   Jogos
+			   7   Diversos (incluindo pacotes macro e convenções), e.g. man(7), groff(7)
+			   8   Comandos de administração do sistema (habitualmente só para root)
+			   9   Rotinas do kernel [Não padrão]
+		man -k network - busca todos os manuais ou descrição que tenham a palavra network
+		apropos network - busca todos os manuais ou descrição que tenham a palavra network
+		man -f services - busca todos os manuais que tenham exatamente o nome contendo a palavra services
+		whatis services - busca todos os manuais que tenham exatamente o nome contendo a palavra services
+		whereis <comando> - aonde está localizado o binário e o manual ex.: whereis ls
+		mandb - atualiza a base de dados local (manuais)
+		catman - verifica se todas páginas ou indices do mandb estão formatados
+		witch mkdir - aonde está localizado o binário do comando
+		apt install info -y - um grande documento, que pode ser utilizado através de pagedown, algumas particularidades (tudo que tem no man, com formatação/estrutura diferente) - não é nativo
+		
+		Standard Input (stdin) - dispositivo padrão de entrada (teclado)
+		Standard Output (stdout) - dispositivo padrão de saída (monitor)
+		Standard Error (stderr)- dispositivo padrão de saída de erros (monitor)
+			0 - STDIN
+			1 - STDOUT
+			2 - STDERR
+
+			ls /etc/*.conf - listar todos arquivos *.conf no monitor
+			ls /etc/*.conf 1> /temp/lista.txt - listar todos arquivos *.conf de  saída padrão (1) no arquivo
+				quando direciona para um arquivo já existente, ele sobrescreve o arquivo
+				ex ls /etc/*.???? - qualquer arquivo de extensão com 4 caracteres
+				ex ls /etc/*.{????,???} - terminando com três caracteres ou com quatro
+			date - imprime a data atual na tela
+			date > /tmp/lista.txt - sobrescreve a informação no arquivo
+			date >> /tmp/lista.txt - incrementa a nova informação no arquivo
+			cat /tmp/lista.txt - visualiza o conteúdo do arquivo (de cima para baixo)
+			tac /tmp/lista.txt - visualiza o conteúdo do arquivo (de baixo para cima)
+			echo "comentário" >> /tmp/lista.txt - adiciona o comentário no arquivo
+			find / -size +20M - busca arquivos com tamnho maior que 20M
+			find / -size +20M > /tmp/lista01.txt 2> /tmp/erros.txt - direcionou a saída padrã para lista01.txt e erros para erros.txt
+			find / -size +20M > /tmp/lista01.txt 2> /dev/null - direciona os erros para um dispositivo chamado /dev/null (buraco negro)
+			find / -size +20M > /tmp/lista02.txt 2>&1 - direciona a saída de erros, para o mesmo lugar que a saída padrão (& direciona)
+			cat <<EOF > /tmp/lista03.txt
+				> primeira linha
+				> segunda linha
+				> teste
+				> EOF
+			cat /tmp/lista03.txt - no fluxo acima, ele cria um arquivo, direcionando o texto de primeira linha até teste! O arquivo só é criado, quando o EOF no final é enviado!
+			cal - apresenta o calendário
+			help set - define ou remove valores das opções dos parâmetros do shell
+				set -o noclobber - impede a sobrescrita de arquivo já existente (na sessão)
+				set +o noclobber - permite novamente a sobrescrita de arquivo já existente (na sessão)
+				set -o - apresenta os status dos parâmetros
+			tee - dá a saída padrão / output, e escreve em um arquivo
+				ex. find / -size +20M 2> /dev/null | tee rel01.txt rel02.txt
+				ex. find / -size +20M 2> /dev/null | tee -a rel01.txt rel02.txt - append nos arquivos
+			wc -l / nl - escreve na sua saída padrão, e também um write, em um arquivo
+				ex. find / -size +20M 2> /dev/null | wc -l 
+					wc -l - conta a quantidade de linhas
+				ex. find / -size +20M 2> /dev/null | nl
+					nl - numera as linhas
+			rm -rf * - remove todos os arquivos dentro do diretório
+			wc -l passwd - quantidade de linhas de um arquivo
+			wc -c passwd - quantidade de caracteres de um arquivo
+			wc -w passwd - quantidade de palavras em um arquivo
+			wc passwd - todas as informações acima
+			nl passwd - todas as informações do wc
+			cat -n passwd - enumera as linhas
+			cat -n passwd | head -n 5 - somente as 5 primeiras linhas
+			cat -n passwd | tail -n 5 - somente as 5 últimas linhas
+			cat -n passwd | head -n 5 | sort -r - concatenação de comandos, de modo a numerar as linhas, pegar as 5 primeiras e inverter a ordem
+			tr - substitui ou deleta 
+				ex head -n 5 /tmp/passwd |tr ':' ';' - aonde tiver :, vai substituir por ;
+				ex head -n 5 /tmp/passwd |tr ':' ';' > arq01.txt
+				ex head -n 5 /tmp/passwd |tr a-z A-Z - substitui de minúsculas por maiúsculas
+				ex head -n 5 /tmp/passwd |tr rot ROT - substitui r por R, o por O e t por T
+				ex head -n 5 /tmp/passwd |tr -d o - deleta todos os caracteres o
+			grep - filtragem linhas com determinado padrão de caracter, dando destaque para o filtro encontrado
+				ex grep --color -n /bin/bash /tmp/passwd - filtrou as linhas com /bin/bash
+				ex grep --color -n /bin/bash -r /etc buscar dentro de todo o diretório /etc, recursivamente, arquivos que contenham /bin/bash, informando a linha que foi encontrada
+				ex grep --color -nv /bin/bash /tmp/passwd - traga tudo, menos as linhas que tenham /bin/bash, por causa do -v
+				ex grep --color -nv nologin /tmp/passwd - traga todas as linhas que não contenham a palavra nologin
+				ex grep --color -ni gnome /tmp/passwd - com o parâmetro -i, ignora o case sensitive, na busca pela palavra gnome
+				ex cat /var/log/auth.log | grep --color -i 'jan 21' - filtra no arquivo auth.log, somente as linhas que contenham a palavra 'jan 21', ignorando o case sensitive
+				ex cat /var/log/auth.log | grep --color -i 'jan 21' | grep --color -i opened - mesmo filtro a cima, que contenham a palavra opened
+				ex grep --color -n analista /tmp/passwd - retorna a linha que contem a palavra analista no arquivo /tmp/passwd
+				ex grep --color -n analista /tmp/passwd -B 2 - retorna a linha que contem a palavra analista no arquivo /tmp/passwd e duas linhas antes
+					-B - before (antes)
+				ex grep --color -n analista /tmp/passwd -A 2 - retorna a linha que contem a palavra analista no arquivo /tmp/passwd e duas linhas depois
+					-A - after (depois)
+				ex grep --color -n analista /tmp/passwd -B 2 -A 2 - 2 linhas antes e 2 linhas depois de encontrar a palavra analista
+				
+				egrep 
+					Regular Expressions
+						^ - montar uma expressão pegando aquilo que inicia com determinado caracter
+						^r - pegar todas as linhas que iniciem com r
+						$ - montar uma expressão pegando aquilo que finaliza com determinado caracter
+						bash$ - todas as linhas que finalizem com bash
+						ex egrep --color -n '^r' /tmp/passwd - imprime as linhas que iniciem com a letra r no arquivo /tmp/passwd
+						ex egrep --color -n '^[rs]' /tmp/passwd - tudo que começa com a letra r ou s
+						ex egrep --color -n '^root|^sshd' /tmp/passwd
+						ex egrep --color -n 'analista|root' /tmp/passwd - busca analista ou root em qualquer parte do texto
+						ex egrep --color 'nologin$' /tmp/passwd - tudo que termina com nologin
+						ex egrep --color '^[abcd].*nologin$' /tmp/passwd - começando com a,b,c ou d, qualquer caracter na sequencia, desde que o final seja nologin
+						ex egrep --color '^.....:' /tmp/passwd - tudo que começa com qualquer caracter, e que na sexta posição, seja um sinal de dois pontos (:)
+					fgrep - desconsidera expressões regulares
+						ex fgrep --color $ /etc/shadow - buscar dentro do arquivo verificando se tem o sinal de $ no arquivo /etc/shadow
+					rgrep --color nologin /etc/ - pesquisar em um diretório 
+										
+					apt install locate - instalando o locate, para localizar arquivos em uma base de dados
+						updatedb - atualiza a base de dados do locate 
+						locate passwd - localize todos os arquivos que contenham essa palavra no seu nome
+							ex locate -c passwd - quantidade de ocorrencias que contenham a palavra passwd em seu nome
+							ex locate -i nsswitch - busca por maiusculas e minusculas
+
+			dd if of - converte e copia um arquivo fielmente, com as mesmas permissões
+				if - input file (entrada padrão)
+				of - output file (saída padrão)
+				ex dd if=/dev/sda of=/dev/sdb - copia do disco sda para o disco sdb, clonando o disco inteiro
+				ex dd if=/dev/sda of=/tmp/boot.img - copia a particao inteira do /sda para um arquivo de backup
+				/dev/zero - gerador/dispositivo de zeros continuamente
+			free -m - apresenta a memória da máquina
+				Mem - memória ram
+				Swap - pedaço do disco rígido
+				ex dd if=/dev/zero of=/var/swapfile count=5 bs=100M - criou 5 arquivos de 100Mb
+					mkswap /var/swapfile
+						swapon /var/swapfile - liga e o arquivo de partição swap
+						swapoff /var/swapfile - desliga o arquivo de partição swap
+				ex dd if=/dev/zero of=/opt/imagem.img  count=1 bs=100M
+
+			lsblk - listar os blocos
+			split - permite dividir arquivos
+				ex split -b 30M -d /opt/imagem.img /tmp/arquivo- - divide o arquivo em 30M, com sequencial numérico (-d)
+				ex cat /tmp/arquivo-* > novoarquivo.img - vai concatenar o arquivo sequencial, no novoarquivo.img
+				ex split -l 10 /etc/passwd  /tmp/senha- - quebra o arquivo passwd em arquivos com 10 linhas cada
+				ex wc -l /tmp/senha-a* - mostra a quantidade de linha do arquivos em /tmp/senha-a*
+				ex cat /tmp/senha-a* > /tmp/novasenha - junta os arquivos novamente
+				ex md5sum imagem.img novoarquivo.img - verifica se os arquivos são idênticos
+					ou diff -s /tmp/novosenha /etc/passwd - vai informar que os arquivos são idênticos
+				
+
+				
+
+			
+
+
+	FHS - Filesystem Hierarchy Standard (diretórios padrões)
+		/home, /root, /srv, /tmp, /usr, /var, /sbin, /bin
+		/boot, /dev, /etc, /lib, /media, /mnt, /opt
+	
+	Expressões Regulares
+		^ - inicio
+		$ - fim de linha
+		. - qualquer caracter naquela posição
+		[] - lista
+		| - ou
+	
+	Caracteres coringas
+		{???,????} - caracter coringa / lista de palavras	
+			ex mkdir -pv relatorios/{arquivo1.txt,arquivo2.txt} - será criado o diretório pai, e os dois arquivos dentro
+			ex touch linux{1,2,3,4,5}.txt - cria 5 arquivos
+			ex touch linux{1..5}.txt - cria 5 arquivos sequenciais
+			ex ls /etc/[abcd]??.conf - retorna arquivos que comecem com a, b, c ou d, que contenha outros 2 caracteres, e finalize com .conf
+		[abcd] - que comece com a, b, c ou d
+		[a-g] - de a até g no inicio
+		[!a-g] - tudo que não inicie entre a até g
+		[A-g] - vai buscar tanto por a quanto por A, até g / G
+		
