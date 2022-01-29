@@ -201,11 +201,203 @@
 				ex md5sum imagem.img novoarquivo.img - verifica se os arquivos são idênticos
 					ou diff -s /tmp/novosenha /etc/passwd - vai informar que os arquivos são idênticos
 				
-
+			cat > nome_arquivo.txt
+				valores
+				separados
+				linhas
+			no final, para salvar o arquivo Ctrl + D
+			paste lista01.txt lista02.txt - vai apresentar o conteúdo dos arquivos concatenados verticalmente
+			join lista01.txt lista02.txt - une os dois arquivos, utilizando o identificador comum
+				ex cat > lista01.txt
+					1 - rogerio
+					2 - tereza
+					3 - marta
+				cat > lista02.txt
+					1 - rogerio@asf.com
+					2 - tereza@asf.com
+					3 - marta@asf.com
+				irá resultar em 
+					1 - rogerio - rogerio@asf.com
+					2 - tereza - tereza@asf.com
+					3 - marta - marta@asf.com
+			pr lista01.txt - páginar um arquivo
+			pr lista01.txt |more 
+			cut - cortar pedaço de um texto em linhas ou arquivos
+				ex head -n 5 /tmp/passwd - vai imprimir na saída padrão, as 5 primeiras linhas
+				ex head -n 5 /tmp/passwd | cut -d : -f 1 - o delimitador (-d) é o : e quero extrair o campo (-f) 1
+				ex head -n 5 /tmp/passwd | cut -d : -f 1,3-5 - mesmo do anterior mais os campos 1, 3 ao 5
+				ex head -n 5 /tmp/passwd | cut -c 1-10 - caracter(-c) vai cortar por posição do index 1 ao 10
+				ex head -n 5 /tmp/passwd | cut -b 1-10 - bytes(-b) 
+				ex head -n 5 /tmp/passwd | cut -d : -f 1,7 --output-delimiter=" " - definindo um separador
 				
+			ip link show dev enp0s3 - informações de endereço da placa de rede
+				ex ip link show dev enp0s3 | egrep ether | cut -d " " -f 6 - vai retornar somente o endereço macro
+				
+			awk - filtragem através de linguagem /programas
+				ex head -n 5 /tmp/passwd |awk -F: '{ print $1 }' - (-F qual o delimitador), imprima o campo de número 1($1) - mesma coisa que pelo comando cut
+				ex head -n 5 /tmp/passwd |awk -F: '{ print $1,$3 }' - (-F qual o delimitador), imprima o campo de número 1 espaço campo de número 3($1,$3) - mesma coisa que pelo comando cut
+				ex head -n 5 /tmp/passwd |awk -F: '{ print "login: "$1,"\nUID: " $3 }'
+				ex awk -F :  '{ print $1 }' /tmp/passwd - filtre direto do arquivo o primeiro campo
+				ex awk -F :  '$3 >= 1000 { print $1 }' /tmp/passwd - imprime o nome do usuário que o 3 campo seja maior que 1000
 
+			head -n 5 /etc/shadow - senha de usuário
+				com senha, é um hash
+				sem senha, é um * ou !
+				ex awk -F : 'length($2) > 2 { print $1,$2 }' /etc/shadow - calcula o tamanho do segundo campo, e se for maior que 2, imprime o nome e a senha
+				awk -F : 'length($2) > 2 { print NR,$1,$2 }' /etc/shadow - (NR número da linha)
+				awk -F : 'length($2) > 2 { print NR,$1FS$2 }' /etc/shadow - (NR número da linha) (FS separador padrão)
+
+			find - ferramenta de busca avançada
+				-name - com distinção de maiúsculas e minúsculas
+				-iname - sem distinção de maiúsculas e minúsculas 
+				ex find /etc/ /var -name passwd
+				ex find /etc/ /var/ -iname *.conf - todos os arquivos .conf
+				ex find / -iname *.conf 2> /dev/null |wc -l - conta quantas linhas retornaram de arquivos com extensão .conf, somente a saída de erros será desconsiderada (/dev/null)
+				ex find /var/ -type l - buscando por links no diretório /var/
+					tipos
+						d - diretório
+						f - arquivo comum
+						l - link
+				ex find /var/ -type l -iname adobe* - buscando por links no diretório /var/ e que o nome contenha Adobe "qualquer coisa"
+				ex find /var/  -type l -iname adobe* |wc -l - busca por adobe qualquer coisa, e retorna o número de linhas
+				ex find / -type f -user analista - busca arquivos comuns do usuário analista
+				ex find / -type f -uid 1000 - busca arquivos comuns do uid 1000
+				ex find / -type f -uid 1000 -size +1M 2> /dev/null - busca arquivos em que o uid seja o 1000, e o tamanho seja maior que 1Mb
+				ex find / -type f -uid 1000 -size +1M -exec ls -lh {} \; 2> /dev/null - vai buscar todos os arquivos comuns do uid 1000, em que o tamanho seja maior de 1Mb, e quando for, execute o comando ls -lh (para apresentar o tamanho do arquivo)
+				ex find / -type f -uid 1000 -size +1M 2> /dev/null | xargs ls -lh - mesmo resultado que o de cima (xargs executa comandos dentro de uma listagem de retorno)	
+				stat - informações de acesso, modificação (conteúdo), alteração (permissões, dono) e criação
+					ex stat /tmp/lista01.txt - 
+						-amin - access minute (buscar arquivos acessados por x minutos) ex -amin -20
+							ex find /tmp/ -amin -20 - arquivos acessado a menos de 20min
+						-mmin - modificados ex -mmin -5
+						-cmin -  changed - ex -cmin +10
+						-atime - acessados em horas ex find /tmp/ -atime -60
+						-mtime - modificados em horas
+						-ctime - changed horas 
+				ex find / -size +10M  -size -20M 2> /dev/null | xargs ls -lh - retorne todos os arquivos em que o tamanho do arquivo esteja entre 10M e 20M
+
+		Editores de texto
+		
+			sed - editor para filtragens e transformação (manipulações) de texto
+				ex sed -e 's/root/suporte/' /tmp/passwd - substitui (s) a palavra root pela palavra suporte somente visualmente (somente a primeira root encontrada)
+				ex sed -e 's/root/suporte/g' /tmp/passwd - substitui (g) a palavra root pela palavra suporte somente visualmente (todas as ocorrencias de root encontradas)
+				ex sed -e '2,5s/nologin/login/g' /tmp/passwd | head - da linha 2 até a linha 5, substitua a palavra nologin por login
+				ex sed -n '2,5p' /tmp/passwd
+				
+				ex sed -i '/^#/d' /tmp/fstab - (-i) deleta as linhas que iniciam com #, alterar dentro do próprio arquivo
 			
+				blkid - localiza e imprime atributos de bloqueio ao dispositivo
+					ex blkid  /dev/sda1 - 
+					ex blkid  /dev/sda1 |awk -F " " '{ print $2 }' - 
 
+			apt install vim -y
+				update-alternatives --config editor - configuração
+					selecionar a opção de vim basic
+				
+			vim - VI(editor de texto) melhorado
+			
+				Cheat VIM Sheet layout - https://linuxhandbook.com/content/images/2021/03/vim-cheat-sheet-for-programmers.png
+				
+				
+			
+				modo de inserção - inserir texto
+				modo de comando - executar ação
+				ex vim /tmp/doc99.txt - chama o vim, informando qual a localização e o nome do arquivo que será criado
+					abre no modo de comando
+						i / I, a / A, o / O, INSERT, s / S - alteram para o modo de inserção
+							pode digitar o seu texto, até que seja pressionada a tecla ESC, saindo do modo de inserção, voltando para o modo de comando
+						:w - instrução para salvar
+							:w <diretório> - faz uma cópia do arquivo
+						ZZ - salva e sai
+						:q - sair do arquivo
+						o - insere uma linha abaixo
+						ESC - sai do modo e vai para o modo de comando
+						v - seleção por caracteres
+						V - seleção por linhas
+						y - copiar
+						p - cola
+						Y - seleciona a linha inteira
+							2Y / y2y / 2yy - formas de copiar automáticamente 2 linhas
+						dd - recortar - pode ser utilizado no contexto de remover / deletar a linha(s) também
+							5dd / d5d - recorta 5 linhas
+						u - voltar / desfazer
+						ctrl + r - refazer
+						/ ou ? - localizar [/] - de cima para baixo [?] - de baixo para cima
+							n - (next) continua pesquisando
+							:set number - mostra o número das linhas
+							:set ignorecase - busca sem considerar maiuscula/minuscula
+							:wq / :wq! / :x / :x! - salvar e sair e com ! força
+							:%s/vim/nano/g - substitui todas as palavras vim por nano
+						vim /etc/vim/vimrc - edita as configurações padrões (set number / set ignorecase e outros)
+							syntax on - habilita as cores para sintaxes padrões
+						vim + doc099.txt - já aber o arquivo na última linha
+						G - última linha
+						gg ou :1 - primeira linha 
+						:n - n é o número da linha
+						:! date - sai temporariamente do arquivo e apresenta a data atual
+						:! ls -lh - sai temporariamente e lista o diretorio
+						:r! date - insere o conteúdo da data atual no arquivo 
+						:! <comando> - fora do vim
+						:r! <comando> - dentro do vim 
+						kjhl - teclas de movimentação (k cima) (j baixo) (h esquerda) (l direira)
+	
+	Máquina - informações de disco
+	
+		script -  cria um script gravado de uma sessão de terminal, ou seja grava tudo que está acontecendo dentro do terminal
+			ex script <nome do arquivo> / script block.txt
+				hostnamectl - informações do sistema operacional
+				pwd - localização atual
+			ex exit - irá finalizar a gravação do arquivo
+			ex more <nome do arquivo> / more block.txt - apresenta o conteúdo do arquivo (diferente do cat, o more é paginado)
+			ex script -a block.txt - append em um arquivo já existente
+			
+		fdisk -l - informações sobre o hd
+			4 partições primárias no máximo
+			sda1 - partição primária
+			sda2 - partição estendida (intúito de criar partições lógicas)
+				sda5 - partição lógica
+				...
+		lsblk - listagem de partições e volumes, indicando aonde elas foram montadas
+		lsblk -f - identifica o filesystem da partição, label, uuid e qual o ponto de montagem existente no disco(ex /boot, /)
+		blkid - identifica o dispositivo e o id
+		df -vhT - consumo dos discos montados
+		cat /proc/partitions - arquivo com informações das partições
+		mount - quais são os dispositivos montados no sistema operacional com seus options
+		du - informaçãoda quantidade de espaço utilizado por determinado diretório
+			ex du -sh /var - estima o espaço utilizado com os parâmetros -s(sumarizado) e o h(leitura humana da memória)
+	
+	Máquina - memória e CPU
+		cat /proc/cpuinfo - arquivo de informações de processador, cache, suportes habilitadoes, cores habilitados na CPU
+		lscpu - mesmo que o cat acima
+		top - programa de consumo atual da CPU / Memórias RAM e Swap (atualiza a cada 2 ou 3 segundos)
+			q - para sair do comando top
+		apt install htop -y 
+		htop - visão próxima ao top, porém com uma solução mais visual
+			q - para sair do comando htop
+		cat /proc/meminfo - arquivo de informações da sua memória
+		free -m - memória disponível em Mb
+		free -h - mesma visão da memória do top
+		cat /proc/swaps - arquivo de informações das memórias de swap
+		swapon -s - informações das memórias de swap
+
+	Máquina - PCI e USB
+		lspci - informações dos dispositivos PCI (placa de rede/usb/video ...)
+			ex lspci -k - listagem de cima com mais detalhes (drivers/módulos)
+			ex lspci -kv - listagem de cima, mais detalhes técnicos
+		lsusb - informações sobre dispositivos usb
+			lsusb -v - lista ainda mais detalhes dos seus dispositivos usb
+			lsusb -t - informações de forma hierárquica
+		apt install lshw -y
+		lshw - principal objetivo fazer extração das principais informações da máquina atual, extraindo em alguns formatos (html/json)
+			ex lshw -json - vai extrair as informações no formato de um arquivo json
+			ex lshw -short - resumido
+			ex lshw -class disk -class storage - somente discos
+			ex lshw -html -class network - somente informações de rede
+			ex lshw | more - todas as informações
+			ex lshw > hardware.txt - extrai as informações e grava no arquivo
+
+		
+		
 
 	FHS - Filesystem Hierarchy Standard (diretórios padrões)
 		/home, /root, /srv, /tmp, /usr, /var, /sbin, /bin
