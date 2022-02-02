@@ -4,7 +4,29 @@
 		Ctrl + r - buscar um comando executado no histórico
 		Ctrl + c - quit no processo sendo executado
 		Ctrl + d - finaliza um arquivo, com seu conteúdo digitado
+		
+	FHS - Filesystem Hierarchy Standard (diretórios padrões)
+		/home, /root, /srv, /tmp, /usr, /var, /sbin, /bin
+		/boot, /dev, /etc, /lib, /media, /mnt, /opt
 	
+	Expressões Regulares
+		^ - inicio
+		$ - fim de linha
+		. - qualquer caracter naquela posição
+		[] - lista
+		| - ou
+
+	Caracteres coringas
+		{???,????} - caracter coringa / lista de palavras	
+			ex mkdir -pv relatorios/{arquivo1.txt,arquivo2.txt} - será criado o diretório pai, e os dois arquivos dentro
+			ex touch linux{1,2,3,4,5}.txt - cria 5 arquivos
+			ex touch linux{1..5}.txt - cria 5 arquivos sequenciais
+			ex ls /etc/[abcd]??.conf - retorna arquivos que comecem com a, b, c ou d, que contenha outros 2 caracteres, e finalize com .conf
+		[abcd] - que comece com a, b, c ou d
+		[a-g] - de a até g no inicio
+		[!a-g] - tudo que não inicie entre a até g
+		[A-g] - vai buscar tanto por a quanto por A, até g / G
+
 	Comandos
 
 		whoami - usuário logado no sistema
@@ -88,193 +110,193 @@
 			1 - STDOUT
 			2 - STDERR
 
-			ls /etc/*.conf - listar todos arquivos *.conf no monitor
-			ls /etc/*.conf 1> /temp/lista.txt - listar todos arquivos *.conf de  saída padrão (1) no arquivo
-				quando direciona para um arquivo já existente, ele sobrescreve o arquivo
-				ex ls /etc/*.???? - qualquer arquivo de extensão com 4 caracteres
-				ex ls /etc/*.{????,???} - terminando com três caracteres ou com quatro
-			date - imprime a data atual na tela
-			date > /tmp/lista.txt - sobrescreve a informação no arquivo
-			date >> /tmp/lista.txt - incrementa a nova informação no arquivo
-			cat /tmp/lista.txt - visualiza o conteúdo do arquivo (de cima para baixo)
-			tac /tmp/lista.txt - visualiza o conteúdo do arquivo (de baixo para cima)
-			echo "comentário" >> /tmp/lista.txt - adiciona o comentário no arquivo
-			find / -size +20M - busca arquivos com tamnho maior que 20M
-			find / -size +20M > /tmp/lista01.txt 2> /tmp/erros.txt - direcionou a saída padrã para lista01.txt e erros para erros.txt
-			find / -size +20M > /tmp/lista01.txt 2> /dev/null - direciona os erros para um dispositivo chamado /dev/null (buraco negro)
-			find / -size +20M > /tmp/lista02.txt 2>&1 - direciona a saída de erros, para o mesmo lugar que a saída padrão (& direciona)
-			cat <<EOF > /tmp/lista03.txt
-				> primeira linha
-				> segunda linha
-				> teste
-				> EOF
-			cat /tmp/lista03.txt - no fluxo acima, ele cria um arquivo, direcionando o texto de primeira linha até teste! O arquivo só é criado, quando o EOF no final é enviado!
-			cal - apresenta o calendário
-			help set - define ou remove valores das opções dos parâmetros do shell
-				set -o noclobber - impede a sobrescrita de arquivo já existente (na sessão)
-				set +o noclobber - permite novamente a sobrescrita de arquivo já existente (na sessão)
-				set -o - apresenta os status dos parâmetros
-			tee - dá a saída padrão / output, e escreve em um arquivo
-				ex. find / -size +20M 2> /dev/null | tee rel01.txt rel02.txt
-				ex. find / -size +20M 2> /dev/null | tee -a rel01.txt rel02.txt - append nos arquivos
-			wc -l / nl - escreve na sua saída padrão, e também um write, em um arquivo
-				ex. find / -size +20M 2> /dev/null | wc -l 
-					wc -l - conta a quantidade de linhas
-				ex. find / -size +20M 2> /dev/null | nl
-					nl - numera as linhas
-			rm -rf * - remove todos os arquivos dentro do diretório
-			wc -l passwd - quantidade de linhas de um arquivo
-			wc -c passwd - quantidade de caracteres de um arquivo
-			wc -w passwd - quantidade de palavras em um arquivo
-			wc passwd - todas as informações acima
-			nl passwd - todas as informações do wc
-			cat -n passwd - enumera as linhas
-			cat -n passwd | head -n 5 - somente as 5 primeiras linhas
-			cat -n passwd | tail -n 5 - somente as 5 últimas linhas
-			cat -n passwd | head -n 5 | sort -r - concatenação de comandos, de modo a numerar as linhas, pegar as 5 primeiras e inverter a ordem
-			tr - substitui ou deleta 
-				ex head -n 5 /tmp/passwd |tr ':' ';' - aonde tiver :, vai substituir por ;
-				ex head -n 5 /tmp/passwd |tr ':' ';' > arq01.txt
-				ex head -n 5 /tmp/passwd |tr a-z A-Z - substitui de minúsculas por maiúsculas
-				ex head -n 5 /tmp/passwd |tr rot ROT - substitui r por R, o por O e t por T
-				ex head -n 5 /tmp/passwd |tr -d o - deleta todos os caracteres o
-			grep - filtragem linhas com determinado padrão de caracter, dando destaque para o filtro encontrado
-				ex grep --color -n /bin/bash /tmp/passwd - filtrou as linhas com /bin/bash
-				ex grep --color -n /bin/bash -r /etc buscar dentro de todo o diretório /etc, recursivamente, arquivos que contenham /bin/bash, informando a linha que foi encontrada
-				ex grep --color -nv /bin/bash /tmp/passwd - traga tudo, menos as linhas que tenham /bin/bash, por causa do -v
-				ex grep --color -nv nologin /tmp/passwd - traga todas as linhas que não contenham a palavra nologin
-				ex grep --color -ni gnome /tmp/passwd - com o parâmetro -i, ignora o case sensitive, na busca pela palavra gnome
-				ex cat /var/log/auth.log | grep --color -i 'jan 21' - filtra no arquivo auth.log, somente as linhas que contenham a palavra 'jan 21', ignorando o case sensitive
-				ex cat /var/log/auth.log | grep --color -i 'jan 21' | grep --color -i opened - mesmo filtro a cima, que contenham a palavra opened
-				ex grep --color -n analista /tmp/passwd - retorna a linha que contem a palavra analista no arquivo /tmp/passwd
-				ex grep --color -n analista /tmp/passwd -B 2 - retorna a linha que contem a palavra analista no arquivo /tmp/passwd e duas linhas antes
-					-B - before (antes)
-				ex grep --color -n analista /tmp/passwd -A 2 - retorna a linha que contem a palavra analista no arquivo /tmp/passwd e duas linhas depois
-					-A - after (depois)
-				ex grep --color -n analista /tmp/passwd -B 2 -A 2 - 2 linhas antes e 2 linhas depois de encontrar a palavra analista
-				
-				egrep 
-					Regular Expressions
-						^ - montar uma expressão pegando aquilo que inicia com determinado caracter
-						^r - pegar todas as linhas que iniciem com r
-						$ - montar uma expressão pegando aquilo que finaliza com determinado caracter
-						bash$ - todas as linhas que finalizem com bash
-						ex egrep --color -n '^r' /tmp/passwd - imprime as linhas que iniciem com a letra r no arquivo /tmp/passwd
-						ex egrep --color -n '^[rs]' /tmp/passwd - tudo que começa com a letra r ou s
-						ex egrep --color -n '^root|^sshd' /tmp/passwd
-						ex egrep --color -n 'analista|root' /tmp/passwd - busca analista ou root em qualquer parte do texto
-						ex egrep --color 'nologin$' /tmp/passwd - tudo que termina com nologin
-						ex egrep --color '^[abcd].*nologin$' /tmp/passwd - começando com a,b,c ou d, qualquer caracter na sequencia, desde que o final seja nologin
-						ex egrep --color '^.....:' /tmp/passwd - tudo que começa com qualquer caracter, e que na sexta posição, seja um sinal de dois pontos (:)
-					fgrep - desconsidera expressões regulares
-						ex fgrep --color $ /etc/shadow - buscar dentro do arquivo verificando se tem o sinal de $ no arquivo /etc/shadow
-					rgrep --color nologin /etc/ - pesquisar em um diretório 
-										
-					apt install locate - instalando o locate, para localizar arquivos em uma base de dados
-						updatedb - atualiza a base de dados do locate 
-						locate passwd - localize todos os arquivos que contenham essa palavra no seu nome
-							ex locate -c passwd - quantidade de ocorrencias que contenham a palavra passwd em seu nome
-							ex locate -i nsswitch - busca por maiusculas e minusculas
+		ls /etc/*.conf - listar todos arquivos *.conf no monitor
+		ls /etc/*.conf 1> /temp/lista.txt - listar todos arquivos *.conf de  saída padrão (1) no arquivo
+			quando direciona para um arquivo já existente, ele sobrescreve o arquivo
+			ex ls /etc/*.???? - qualquer arquivo de extensão com 4 caracteres
+			ex ls /etc/*.{????,???} - terminando com três caracteres ou com quatro
+		date - imprime a data atual na tela
+		date > /tmp/lista.txt - sobrescreve a informação no arquivo
+		date >> /tmp/lista.txt - incrementa a nova informação no arquivo
+		cat /tmp/lista.txt - visualiza o conteúdo do arquivo (de cima para baixo)
+		tac /tmp/lista.txt - visualiza o conteúdo do arquivo (de baixo para cima)
+		echo "comentário" >> /tmp/lista.txt - adiciona o comentário no arquivo
+		find / -size +20M - busca arquivos com tamnho maior que 20M
+		find / -size +20M > /tmp/lista01.txt 2> /tmp/erros.txt - direcionou a saída padrã para lista01.txt e erros para erros.txt
+		find / -size +20M > /tmp/lista01.txt 2> /dev/null - direciona os erros para um dispositivo chamado /dev/null (buraco negro)
+		find / -size +20M > /tmp/lista02.txt 2>&1 - direciona a saída de erros, para o mesmo lugar que a saída padrão (& direciona)
+		cat <<EOF > /tmp/lista03.txt
+			> primeira linha
+			> segunda linha
+			> teste
+			> EOF
+		cat /tmp/lista03.txt - no fluxo acima, ele cria um arquivo, direcionando o texto de primeira linha até teste! O arquivo só é criado, quando o EOF no final é enviado!
+		cal - apresenta o calendário
+		help set - define ou remove valores das opções dos parâmetros do shell
+			set -o noclobber - impede a sobrescrita de arquivo já existente (na sessão)
+			set +o noclobber - permite novamente a sobrescrita de arquivo já existente (na sessão)
+			set -o - apresenta os status dos parâmetros
+		tee - dá a saída padrão / output, e escreve em um arquivo
+			ex. find / -size +20M 2> /dev/null | tee rel01.txt rel02.txt
+			ex. find / -size +20M 2> /dev/null | tee -a rel01.txt rel02.txt - append nos arquivos
+		wc -l / nl - escreve na sua saída padrão, e também um write, em um arquivo
+			ex. find / -size +20M 2> /dev/null | wc -l 
+				wc -l - conta a quantidade de linhas
+			ex. find / -size +20M 2> /dev/null | nl
+				nl - numera as linhas
+		rm -rf * - remove todos os arquivos dentro do diretório
+		wc -l passwd - quantidade de linhas de um arquivo
+		wc -c passwd - quantidade de caracteres de um arquivo
+		wc -w passwd - quantidade de palavras em um arquivo
+		wc passwd - todas as informações acima
+		nl passwd - todas as informações do wc
+		cat -n passwd - enumera as linhas
+		cat -n passwd | head -n 5 - somente as 5 primeiras linhas
+		cat -n passwd | tail -n 5 - somente as 5 últimas linhas
+		cat -n passwd | head -n 5 | sort -r - concatenação de comandos, de modo a numerar as linhas, pegar as 5 primeiras e inverter a ordem
+		tr - substitui ou deleta 
+			ex head -n 5 /tmp/passwd |tr ':' ';' - aonde tiver :, vai substituir por ;
+			ex head -n 5 /tmp/passwd |tr ':' ';' > arq01.txt
+			ex head -n 5 /tmp/passwd |tr a-z A-Z - substitui de minúsculas por maiúsculas
+			ex head -n 5 /tmp/passwd |tr rot ROT - substitui r por R, o por O e t por T
+			ex head -n 5 /tmp/passwd |tr -d o - deleta todos os caracteres o
+		grep - filtragem linhas com determinado padrão de caracter, dando destaque para o filtro encontrado
+			ex grep --color -n /bin/bash /tmp/passwd - filtrou as linhas com /bin/bash
+			ex grep --color -n /bin/bash -r /etc buscar dentro de todo o diretório /etc, recursivamente, arquivos que contenham /bin/bash, informando a linha que foi encontrada
+			ex grep --color -nv /bin/bash /tmp/passwd - traga tudo, menos as linhas que tenham /bin/bash, por causa do -v
+			ex grep --color -nv nologin /tmp/passwd - traga todas as linhas que não contenham a palavra nologin
+			ex grep --color -ni gnome /tmp/passwd - com o parâmetro -i, ignora o case sensitive, na busca pela palavra gnome
+			ex cat /var/log/auth.log | grep --color -i 'jan 21' - filtra no arquivo auth.log, somente as linhas que contenham a palavra 'jan 21', ignorando o case sensitive
+			ex cat /var/log/auth.log | grep --color -i 'jan 21' | grep --color -i opened - mesmo filtro a cima, que contenham a palavra opened
+			ex grep --color -n analista /tmp/passwd - retorna a linha que contem a palavra analista no arquivo /tmp/passwd
+			ex grep --color -n analista /tmp/passwd -B 2 - retorna a linha que contem a palavra analista no arquivo /tmp/passwd e duas linhas antes
+				-B - before (antes)
+			ex grep --color -n analista /tmp/passwd -A 2 - retorna a linha que contem a palavra analista no arquivo /tmp/passwd e duas linhas depois
+				-A - after (depois)
+			ex grep --color -n analista /tmp/passwd -B 2 -A 2 - 2 linhas antes e 2 linhas depois de encontrar a palavra analista
+			
+			egrep 
+				Regular Expressions
+					^ - montar uma expressão pegando aquilo que inicia com determinado caracter
+					^r - pegar todas as linhas que iniciem com r
+					$ - montar uma expressão pegando aquilo que finaliza com determinado caracter
+					bash$ - todas as linhas que finalizem com bash
+					ex egrep --color -n '^r' /tmp/passwd - imprime as linhas que iniciem com a letra r no arquivo /tmp/passwd
+					ex egrep --color -n '^[rs]' /tmp/passwd - tudo que começa com a letra r ou s
+					ex egrep --color -n '^root|^sshd' /tmp/passwd
+					ex egrep --color -n 'analista|root' /tmp/passwd - busca analista ou root em qualquer parte do texto
+					ex egrep --color 'nologin$' /tmp/passwd - tudo que termina com nologin
+					ex egrep --color '^[abcd].*nologin$' /tmp/passwd - começando com a,b,c ou d, qualquer caracter na sequencia, desde que o final seja nologin
+					ex egrep --color '^.....:' /tmp/passwd - tudo que começa com qualquer caracter, e que na sexta posição, seja um sinal de dois pontos (:)
+				fgrep - desconsidera expressões regulares
+					ex fgrep --color $ /etc/shadow - buscar dentro do arquivo verificando se tem o sinal de $ no arquivo /etc/shadow
+				rgrep --color nologin /etc/ - pesquisar em um diretório 
+									
+				apt install locate - instalando o locate, para localizar arquivos em uma base de dados
+					updatedb - atualiza a base de dados do locate 
+					locate passwd - localize todos os arquivos que contenham essa palavra no seu nome
+						ex locate -c passwd - quantidade de ocorrencias que contenham a palavra passwd em seu nome
+						ex locate -i nsswitch - busca por maiusculas e minusculas
 
-			dd if of - converte e copia um arquivo fielmente, com as mesmas permissões
-				if - input file (entrada padrão)
-				of - output file (saída padrão)
-				ex dd if=/dev/sda of=/dev/sdb - copia do disco sda para o disco sdb, clonando o disco inteiro
-				ex dd if=/dev/sda of=/tmp/boot.img - copia a particao inteira do /sda para um arquivo de backup
-				/dev/zero - gerador/dispositivo de zeros continuamente
-			free -m - apresenta a memória da máquina
-				Mem - memória ram
-				Swap - pedaço do disco rígido
-				ex dd if=/dev/zero of=/var/swapfile count=5 bs=100M - criou 5 arquivos de 100Mb
-					mkswap /var/swapfile
-						swapon /var/swapfile - liga e o arquivo de partição swap
-						swapoff /var/swapfile - desliga o arquivo de partição swap
-				ex dd if=/dev/zero of=/opt/imagem.img  count=1 bs=100M
+		dd if of - converte e copia um arquivo fielmente, com as mesmas permissões
+			if - input file (entrada padrão)
+			of - output file (saída padrão)
+			ex dd if=/dev/sda of=/dev/sdb - copia do disco sda para o disco sdb, clonando o disco inteiro
+			ex dd if=/dev/sda of=/tmp/boot.img - copia a particao inteira do /sda para um arquivo de backup
+			/dev/zero - gerador/dispositivo de zeros continuamente
+		free -m - apresenta a memória da máquina
+			Mem - memória ram
+			Swap - pedaço do disco rígido
+			ex dd if=/dev/zero of=/var/swapfile count=5 bs=100M - criou 5 arquivos de 100Mb
+				mkswap /var/swapfile
+					swapon /var/swapfile - liga e o arquivo de partição swap
+					swapoff /var/swapfile - desliga o arquivo de partição swap
+			ex dd if=/dev/zero of=/opt/imagem.img  count=1 bs=100M
 
-			lsblk - listar os blocos
-			split - permite dividir arquivos
-				ex split -b 30M -d /opt/imagem.img /tmp/arquivo- - divide o arquivo em 30M, com sequencial numérico (-d)
-				ex cat /tmp/arquivo-* > novoarquivo.img - vai concatenar o arquivo sequencial, no novoarquivo.img
-				ex split -l 10 /etc/passwd  /tmp/senha- - quebra o arquivo passwd em arquivos com 10 linhas cada
-				ex wc -l /tmp/senha-a* - mostra a quantidade de linha do arquivos em /tmp/senha-a*
-				ex cat /tmp/senha-a* > /tmp/novasenha - junta os arquivos novamente
-				ex md5sum imagem.img novoarquivo.img - verifica se os arquivos são idênticos
-					ou diff -s /tmp/novosenha /etc/passwd - vai informar que os arquivos são idênticos
-				
-			cat > nome_arquivo.txt
-				valores
-				separados
-				linhas
-			no final, para salvar o arquivo Ctrl + D
-			paste lista01.txt lista02.txt - vai apresentar o conteúdo dos arquivos concatenados verticalmente
-			join lista01.txt lista02.txt - une os dois arquivos, utilizando o identificador comum
-				ex cat > lista01.txt
-					1 - rogerio
-					2 - tereza
-					3 - marta
-				cat > lista02.txt
-					1 - rogerio@asf.com
-					2 - tereza@asf.com
-					3 - marta@asf.com
-				irá resultar em 
-					1 - rogerio - rogerio@asf.com
-					2 - tereza - tereza@asf.com
-					3 - marta - marta@asf.com
-			pr lista01.txt - páginar um arquivo
-			pr lista01.txt |more 
-			cut - cortar pedaço de um texto em linhas ou arquivos
-				ex head -n 5 /tmp/passwd - vai imprimir na saída padrão, as 5 primeiras linhas
-				ex head -n 5 /tmp/passwd | cut -d : -f 1 - o delimitador (-d) é o : e quero extrair o campo (-f) 1
-				ex head -n 5 /tmp/passwd | cut -d : -f 1,3-5 - mesmo do anterior mais os campos 1, 3 ao 5
-				ex head -n 5 /tmp/passwd | cut -c 1-10 - caracter(-c) vai cortar por posição do index 1 ao 10
-				ex head -n 5 /tmp/passwd | cut -b 1-10 - bytes(-b) 
-				ex head -n 5 /tmp/passwd | cut -d : -f 1,7 --output-delimiter=" " - definindo um separador
-				
-			ip link show dev enp0s3 - informações de endereço da placa de rede
-				ex ip link show dev enp0s3 | egrep ether | cut -d " " -f 6 - vai retornar somente o endereço macro
-				
-			awk - filtragem através de linguagem /programas
-				ex head -n 5 /tmp/passwd |awk -F: '{ print $1 }' - (-F qual o delimitador), imprima o campo de número 1($1) - mesma coisa que pelo comando cut
-				ex head -n 5 /tmp/passwd |awk -F: '{ print $1,$3 }' - (-F qual o delimitador), imprima o campo de número 1 espaço campo de número 3($1,$3) - mesma coisa que pelo comando cut
-				ex head -n 5 /tmp/passwd |awk -F: '{ print "login: "$1,"\nUID: " $3 }'
-				ex awk -F :  '{ print $1 }' /tmp/passwd - filtre direto do arquivo o primeiro campo
-				ex awk -F :  '$3 >= 1000 { print $1 }' /tmp/passwd - imprime o nome do usuário que o 3 campo seja maior que 1000
+		lsblk - listar os blocos
+		split - permite dividir arquivos
+			ex split -b 30M -d /opt/imagem.img /tmp/arquivo- - divide o arquivo em 30M, com sequencial numérico (-d)
+			ex cat /tmp/arquivo-* > novoarquivo.img - vai concatenar o arquivo sequencial, no novoarquivo.img
+			ex split -l 10 /etc/passwd  /tmp/senha- - quebra o arquivo passwd em arquivos com 10 linhas cada
+			ex wc -l /tmp/senha-a* - mostra a quantidade de linha do arquivos em /tmp/senha-a*
+			ex cat /tmp/senha-a* > /tmp/novasenha - junta os arquivos novamente
+			ex md5sum imagem.img novoarquivo.img - verifica se os arquivos são idênticos
+				ou diff -s /tmp/novosenha /etc/passwd - vai informar que os arquivos são idênticos
+			
+		cat > nome_arquivo.txt
+			valores
+			separados
+			linhas
+		no final, para salvar o arquivo Ctrl + D
+		paste lista01.txt lista02.txt - vai apresentar o conteúdo dos arquivos concatenados verticalmente
+		join lista01.txt lista02.txt - une os dois arquivos, utilizando o identificador comum
+			ex cat > lista01.txt
+				1 - rogerio
+				2 - tereza
+				3 - marta
+			cat > lista02.txt
+				1 - rogerio@asf.com
+				2 - tereza@asf.com
+				3 - marta@asf.com
+			irá resultar em 
+				1 - rogerio - rogerio@asf.com
+				2 - tereza - tereza@asf.com
+				3 - marta - marta@asf.com
+		pr lista01.txt - páginar um arquivo
+		pr lista01.txt |more 
+		cut - cortar pedaço de um texto em linhas ou arquivos
+			ex head -n 5 /tmp/passwd - vai imprimir na saída padrão, as 5 primeiras linhas
+			ex head -n 5 /tmp/passwd | cut -d : -f 1 - o delimitador (-d) é o : e quero extrair o campo (-f) 1
+			ex head -n 5 /tmp/passwd | cut -d : -f 1,3-5 - mesmo do anterior mais os campos 1, 3 ao 5
+			ex head -n 5 /tmp/passwd | cut -c 1-10 - caracter(-c) vai cortar por posição do index 1 ao 10
+			ex head -n 5 /tmp/passwd | cut -b 1-10 - bytes(-b) 
+			ex head -n 5 /tmp/passwd | cut -d : -f 1,7 --output-delimiter=" " - definindo um separador
+			
+		ip link show dev enp0s3 - informações de endereço da placa de rede
+			ex ip link show dev enp0s3 | egrep ether | cut -d " " -f 6 - vai retornar somente o endereço macro
+			
+		awk - filtragem através de linguagem /programas
+			ex head -n 5 /tmp/passwd |awk -F: '{ print $1 }' - (-F qual o delimitador), imprima o campo de número 1($1) - mesma coisa que pelo comando cut
+			ex head -n 5 /tmp/passwd |awk -F: '{ print $1,$3 }' - (-F qual o delimitador), imprima o campo de número 1 espaço campo de número 3($1,$3) - mesma coisa que pelo comando cut
+			ex head -n 5 /tmp/passwd |awk -F: '{ print "login: "$1,"\nUID: " $3 }'
+			ex awk -F :  '{ print $1 }' /tmp/passwd - filtre direto do arquivo o primeiro campo
+			ex awk -F :  '$3 >= 1000 { print $1 }' /tmp/passwd - imprime o nome do usuário que o 3 campo seja maior que 1000
 
-			head -n 5 /etc/shadow - senha de usuário
-				com senha, é um hash
-				sem senha, é um * ou !
-				ex awk -F : 'length($2) > 2 { print $1,$2 }' /etc/shadow - calcula o tamanho do segundo campo, e se for maior que 2, imprime o nome e a senha
-				awk -F : 'length($2) > 2 { print NR,$1,$2 }' /etc/shadow - (NR número da linha)
-				awk -F : 'length($2) > 2 { print NR,$1FS$2 }' /etc/shadow - (NR número da linha) (FS separador padrão)
+		head -n 5 /etc/shadow - senha de usuário
+			com senha, é um hash
+			sem senha, é um * ou !
+			ex awk -F : 'length($2) > 2 { print $1,$2 }' /etc/shadow - calcula o tamanho do segundo campo, e se for maior que 2, imprime o nome e a senha
+			awk -F : 'length($2) > 2 { print NR,$1,$2 }' /etc/shadow - (NR número da linha)
+			awk -F : 'length($2) > 2 { print NR,$1FS$2 }' /etc/shadow - (NR número da linha) (FS separador padrão)
 
-			find - ferramenta de busca avançada
-				-name - com distinção de maiúsculas e minúsculas
-				-iname - sem distinção de maiúsculas e minúsculas 
-				ex find /etc/ /var -name passwd
-				ex find /etc/ /var/ -iname *.conf - todos os arquivos .conf
-				ex find / -iname *.conf 2> /dev/null |wc -l - conta quantas linhas retornaram de arquivos com extensão .conf, somente a saída de erros será desconsiderada (/dev/null)
-				ex find /var/ -type l - buscando por links no diretório /var/
-					tipos
-						d - diretório
-						f - arquivo comum
-						l - link
-				ex find /var/ -type l -iname adobe* - buscando por links no diretório /var/ e que o nome contenha Adobe "qualquer coisa"
-				ex find /var/  -type l -iname adobe* |wc -l - busca por adobe qualquer coisa, e retorna o número de linhas
-				ex find / -type f -user analista - busca arquivos comuns do usuário analista
-				ex find / -type f -uid 1000 - busca arquivos comuns do uid 1000
-				ex find / -type f -uid 1000 -size +1M 2> /dev/null - busca arquivos em que o uid seja o 1000, e o tamanho seja maior que 1Mb
-				ex find / -type f -uid 1000 -size +1M -exec ls -lh {} \; 2> /dev/null - vai buscar todos os arquivos comuns do uid 1000, em que o tamanho seja maior de 1Mb, e quando for, execute o comando ls -lh (para apresentar o tamanho do arquivo)
-				ex find / -type f -uid 1000 -size +1M 2> /dev/null | xargs ls -lh - mesmo resultado que o de cima (xargs executa comandos dentro de uma listagem de retorno)	
-				stat - informações de acesso, modificação (conteúdo), alteração (permissões, dono) e criação
-					ex stat /tmp/lista01.txt - 
-						-amin - access minute (buscar arquivos acessados por x minutos) ex -amin -20
-							ex find /tmp/ -amin -20 - arquivos acessado a menos de 20min
-						-mmin - modificados ex -mmin -5
-						-cmin -  changed - ex -cmin +10
-						-atime - acessados em horas ex find /tmp/ -atime -60
-						-mtime - modificados em horas
-						-ctime - changed horas 
-				ex find / -size +10M  -size -20M 2> /dev/null | xargs ls -lh - retorne todos os arquivos em que o tamanho do arquivo esteja entre 10M e 20M
+		find - ferramenta de busca avançada
+			-name - com distinção de maiúsculas e minúsculas
+			-iname - sem distinção de maiúsculas e minúsculas 
+			ex find /etc/ /var -name passwd
+			ex find /etc/ /var/ -iname *.conf - todos os arquivos .conf
+			ex find / -iname *.conf 2> /dev/null |wc -l - conta quantas linhas retornaram de arquivos com extensão .conf, somente a saída de erros será desconsiderada (/dev/null)
+			ex find /var/ -type l - buscando por links no diretório /var/
+				tipos
+					d - diretório
+					f - arquivo comum
+					l - link
+			ex find /var/ -type l -iname adobe* - buscando por links no diretório /var/ e que o nome contenha Adobe "qualquer coisa"
+			ex find /var/  -type l -iname adobe* |wc -l - busca por adobe qualquer coisa, e retorna o número de linhas
+			ex find / -type f -user analista - busca arquivos comuns do usuário analista
+			ex find / -type f -uid 1000 - busca arquivos comuns do uid 1000
+			ex find / -type f -uid 1000 -size +1M 2> /dev/null - busca arquivos em que o uid seja o 1000, e o tamanho seja maior que 1Mb
+			ex find / -type f -uid 1000 -size +1M -exec ls -lh {} \; 2> /dev/null - vai buscar todos os arquivos comuns do uid 1000, em que o tamanho seja maior de 1Mb, e quando for, execute o comando ls -lh (para apresentar o tamanho do arquivo)
+			ex find / -type f -uid 1000 -size +1M 2> /dev/null | xargs ls -lh - mesmo resultado que o de cima (xargs executa comandos dentro de uma listagem de retorno)	
+			stat - informações de acesso, modificação (conteúdo), alteração (permissões, dono) e criação
+				ex stat /tmp/lista01.txt - 
+					-amin - access minute (buscar arquivos acessados por x minutos) ex -amin -20
+						ex find /tmp/ -amin -20 - arquivos acessado a menos de 20min
+					-mmin - modificados ex -mmin -5
+					-cmin -  changed - ex -cmin +10
+					-atime - acessados em horas ex find /tmp/ -atime -60
+					-mtime - modificados em horas
+					-ctime - changed horas 
+			ex find / -size +10M  -size -20M 2> /dev/null | xargs ls -lh - retorne todos os arquivos em que o tamanho do arquivo esteja entre 10M e 20M
 
 		Editores de texto
 		
@@ -294,52 +316,50 @@
 				update-alternatives --config editor - configuração
 					selecionar a opção de vim basic
 				
-			vim - VI(editor de texto) melhorado
-			
-				Cheat VIM Sheet layout - https://linuxhandbook.com/content/images/2021/03/vim-cheat-sheet-for-programmers.png
+				vim - VI(editor de texto) melhorado
 				
-				
-			
-				modo de inserção - inserir texto
-				modo de comando - executar ação
-				ex vim /tmp/doc99.txt - chama o vim, informando qual a localização e o nome do arquivo que será criado
-					abre no modo de comando
-						i / I, a / A, o / O, INSERT, s / S - alteram para o modo de inserção
-							pode digitar o seu texto, até que seja pressionada a tecla ESC, saindo do modo de inserção, voltando para o modo de comando
-						:w - instrução para salvar
-							:w <diretório> - faz uma cópia do arquivo
-						ZZ - salva e sai
-						:q - sair do arquivo
-						o - insere uma linha abaixo
-						ESC - sai do modo e vai para o modo de comando
-						v - seleção por caracteres
-						V - seleção por linhas
-						y - copiar
-						p - cola
-						Y - seleciona a linha inteira
-							2Y / y2y / 2yy - formas de copiar automáticamente 2 linhas
-						dd - recortar - pode ser utilizado no contexto de remover / deletar a linha(s) também
-							5dd / d5d - recorta 5 linhas
-						u - voltar / desfazer
-						ctrl + r - refazer
-						/ ou ? - localizar [/] - de cima para baixo [?] - de baixo para cima
-							n - (next) continua pesquisando
-							:set number - mostra o número das linhas
-							:set ignorecase - busca sem considerar maiuscula/minuscula
-							:wq / :wq! / :x / :x! - salvar e sair e com ! força
-							:%s/vim/nano/g - substitui todas as palavras vim por nano
-						vim /etc/vim/vimrc - edita as configurações padrões (set number / set ignorecase e outros)
-							syntax on - habilita as cores para sintaxes padrões
-						vim + doc099.txt - já aber o arquivo na última linha
-						G - última linha
-						gg ou :1 - primeira linha 
-						:n - n é o número da linha
-						:! date - sai temporariamente do arquivo e apresenta a data atual
-						:! ls -lh - sai temporariamente e lista o diretorio
-						:r! date - insere o conteúdo da data atual no arquivo 
-						:! <comando> - fora do vim
-						:r! <comando> - dentro do vim 
-						kjhl - teclas de movimentação (k cima) (j baixo) (h esquerda) (l direira)
+					Cheat VIM Sheet layout - https://linuxhandbook.com/content/images/2021/03/vim-cheat-sheet-for-programmers.png
+							
+					modo de inserção - inserir texto
+					modo de comando - executar ação
+					ex vim /tmp/doc99.txt - chama o vim, informando qual a localização e o nome do arquivo que será criado
+						abre no modo de comando
+							i / I, a / A, o / O, INSERT, s / S - alteram para o modo de inserção
+								pode digitar o seu texto, até que seja pressionada a tecla ESC, saindo do modo de inserção, voltando para o modo de comando
+							:w - instrução para salvar
+								:w <diretório> - faz uma cópia do arquivo
+							ZZ - salva e sai
+							:q - sair do arquivo
+							o - insere uma linha abaixo
+							ESC - sai do modo e vai para o modo de comando
+							v - seleção por caracteres
+							V - seleção por linhas
+							y - copiar
+							p - cola
+							Y - seleciona a linha inteira
+								2Y / y2y / 2yy - formas de copiar automáticamente 2 linhas
+							dd - recortar - pode ser utilizado no contexto de remover / deletar a linha(s) também
+								5dd / d5d - recorta 5 linhas
+							u - voltar / desfazer
+							ctrl + r - refazer
+							/ ou ? - localizar [/] - de cima para baixo [?] - de baixo para cima
+								n - (next) continua pesquisando
+								:set number - mostra o número das linhas
+								:set ignorecase - busca sem considerar maiuscula/minuscula
+								:wq / :wq! / :x / :x! - salvar e sair e com ! força
+								:%s/vim/nano/g - substitui todas as palavras vim por nano
+							vim /etc/vim/vimrc - edita as configurações padrões (set number / set ignorecase e outros)
+								syntax on - habilita as cores para sintaxes padrões
+							vim + doc099.txt - já aber o arquivo na última linha
+							G - última linha
+							gg ou :1 - primeira linha 
+							:n - n é o número da linha
+							:! date - sai temporariamente do arquivo e apresenta a data atual
+							:! ls -lh - sai temporariamente e lista o diretorio
+							:r! date - insere o conteúdo da data atual no arquivo 
+							:! <comando> - fora do vim
+							:r! <comando> - dentro do vim 
+							kjhl - teclas de movimentação (k cima) (j baixo) (h esquerda) (l direira)
 	
 	Máquina - informações de disco
 	
@@ -397,27 +417,167 @@
 			ex lshw > hardware.txt - extrai as informações e grava no arquivo
 
 		
-		
+	Máquina Intranet
+	
+		1º - particionar
+			- primária - no máximo 4 partições
+			- estendida - criar divisões / subpartições menores (lógica)
+		2º - formatar fixando sistema de arquivos
+		3º - montagem
 
-	FHS - Filesystem Hierarchy Standard (diretórios padrões)
-		/home, /root, /srv, /tmp, /usr, /var, /sbin, /bin
-		/boot, /dev, /etc, /lib, /media, /mnt, /opt
-	
-	Expressões Regulares
-		^ - inicio
-		$ - fim de linha
-		. - qualquer caracter naquela posição
-		[] - lista
-		| - ou
-	
-	Caracteres coringas
-		{???,????} - caracter coringa / lista de palavras	
-			ex mkdir -pv relatorios/{arquivo1.txt,arquivo2.txt} - será criado o diretório pai, e os dois arquivos dentro
-			ex touch linux{1,2,3,4,5}.txt - cria 5 arquivos
-			ex touch linux{1..5}.txt - cria 5 arquivos sequenciais
-			ex ls /etc/[abcd]??.conf - retorna arquivos que comecem com a, b, c ou d, que contenha outros 2 caracteres, e finalize com .conf
-		[abcd] - que comece com a, b, c ou d
-		[a-g] - de a até g no inicio
-		[!a-g] - tudo que não inicie entre a até g
-		[A-g] - vai buscar tanto por a quanto por A, até g / G
+			1ª particionamento
+
+				fdisk -l - listagem dos discos
+				fdisk /dev/sdb <enter> - irá executar as ações de particionamento no disco /dev/sdb
+					m - ajuda
+						n - adiciona uma nova partição
+						d - exclui uma partição
+						p - mostra a tabela de partição
+						w - grava e sai
+						q - sai sem salvar as alterações
+							n / p / 1 / 2048 / +5G - +tamanhoUnidade(tamanho do disco em K, M, G, T, P)
+							n / p / 2 / <enter> / <enter> - o restante do disco
+							w - para gravar e sair
+						
+			2ª formatar fixando sistema de arquivos
+
+				ext3 - 
+				ext4 - 
+				xfs - arquivos maiores / bancos de dados
+
+				apt install vim xfsprogs parted -y
+
+				mkfs -t xfs /dev/sdb1 - vai formatar com o sistema de arquivos xfs no disco /dev/sdb1
+				mkfs.xfs /dev/sdb2 - mesma coisa que o anterior
+				mkfs.xfs /dev/sdc1
+				blkid /dev/sdb1 - confirmar a formatação
+				lsblk -f - mostra a arvore de discos com seus file systems
+				xfs_admin -L express /dev/sdb1 - sendo express o nome do label 
+				xfs_admin -L logs /dev/sdb1 - sendo logs o nome do label 
+				xfs_admin -L backup /dev/sdb1 - sendo backup o nome do label 
+				
+			3ª montagem
+			
+				mkdir -pv /srv/www/express - cria diretório /www/express
+				mkdir -pv /var/log/apache2 - cria diretório apache2
+				mkdir -pv /backups - cria o diretório backups
+				
+				mount /dev/sdb1 /srv/www/express - fazer a ligação do dispositivo com o diretório
+				mount /dev/sdb2 /var/log/apache2
+				mount /dev/sdc1 /backups
+
+				df -vhT - lista os dispositivos
+				lsblk -f - lista os dispositivos
+
+				umount dispositivo
+					umount /dev/sdb1
+					umount /dev/sdb2
+				umount diretório
+					umount /backups
+				
+				vim /etc/fstab - arquivo lido na inicialização
+					o - para ir ao modo de inserção
+					
+						/dev/sdb1	/srv/www/express	xfs		defaults	0	0	- primeiro informamos o dispositivo (/dev/sdb1) no diretório (/srv/www/express) com o sistema de arquivos formatado (xfs), options (default[leitura e escrita]) (como que ele será montado? somente leitura? escrita? sem executável?), dump (0 - disable, 1 - enable) e finalmente o pass (0 - sem checagem, 1 ou 2 - ordem das verificações - checagem do disco na inicialização [se tem algum setor ou bloco defeituoso])
+						LABEL=logs	/var/log/apache2	xfs		defaults	0	0	- 
+						/dev/sdc1	/backups			xfs		defaults	0	0	- 
+						
+						ou seja, oonseguimos registrar com 
+							o endereço do dispositivo
+							label 
+							UUID de identificação do dispositivo
+					:wq
+					
+				mount -av - confirma se os dispositivos foram montados corretamente
+				
+				shutdown -r now - reinicializa o sistema
+				
+		Migração entre Sistemas de Arquivos
 		
+			ext3 ---> ext4
+			lsblk -f
+			
+			formatação 
+				/dev/sdb1 -> ext4
+				/dev/sdb2 -> ext3
+				
+			mkfs -t ext4 /dev/sdb1
+			mkfs -t ext3 /dev/sdb2
+					
+			tune2fs -L git /dev/sdb1 - incluir label no EXT
+			tune2fs -L backup /dev/sdb2 
+			
+			mkdir -pv /home/analista/git
+			mkdir -pv /backup
+					
+			mount /dev/sdb1 /home/analista/git
+			mount /dev/sdb2 /backup
+			
+			apt update -y
+			apt intall git -y
+			
+			cd /home/analista/git
+				git clone https://github.com/rogerramossilva/linuxforce
+				
+			cpio - ferramenta para copy input/output - copia de arquivos e armazena o resultado em archives
+				cpio -ov - criação e imprime suas execuções
+				cpio -iv - extração e imprime suas execuções
+				
+				find /home/analista/git/linuxforce/ | cpio -ov > /backupt/linuxforce.cpio - > (sinal de maior) indica qual arquivo será direcionado (qualquer extensão, só vale lembrar que ele não compacta)
+				
+			tar - empacotar e comprimir (dependendo da flag)
+				tar -cf arquivo.tar foo bar - c é create/criação, f de file para indicar o archive 
+					-c    create
+					-t    listar
+					-x    extract
+					-f nomearquivo
+					-v mostra na tela
+					-z para compactar com gzip
+					-j para compactar com o bzip2
+					J para compactar com o xz
+				tar -cvf /backup/linuxforce.tar /home/analista/git/linuxforce - cria e apresenta o resultado com o arquivo /backup/linuxforce.tar contendo as informações do diretório /home/analista/git/linuxforce/ e pode-se colocar mais arquivos ... separando-os por espaços somente!
+					tar -xvf linuxforce.tar -C /tmp/ - extrai os arquivos do linuxforce.tar no diretório /tmp (-x extrai)
+					ferramentas de compactação
+						ex gzip  - gzip linuxforce.tar
+							ex gunzip linuxforce.tar.gz - remove a compactação
+						ex bzip2 - bzip2 linuxforce.cpio
+							ex bunzip linuxforce.cpio.bz2 - remove a compactação
+						ex xz    - 
+							ex 
+						tamanho/tempo - demonstração
+							62MB   -  gzip  -  40MB   1m
+							62MB   -  bzip2 -  30MB   3m
+							62MB   -  xz    -  25MB   3m
+				tar -czvf /backup/log.tar.gz /var/log - criou e já compactou o arquvio com o gzip
+				tar -czvf /backup/log.tar.gz  /var/log/
+				tar -cjf /backup/log.tar.bz2  /var/log/
+				tar -xJf log.tar.xz -C /tmp/ 
+				tar -xjf log.tar.bz2 -C /tmp/
+				tar -xzf log.tar.gz -C /tmp/
+				
+		Checagem do antes e do depois
+			sha1sum - calculo com base no estado atual do arquivo - SHA1
+				sha1sum teste.txt - se o arquivo for alterado, o hash será diferente
+				sha1sum * 2> /dev/null > /opt/result01.txt
+
+		...: CONVERSÃO :...
+			cd /
+			umount /backup - desmonta o diretório
+			tune2fs -O extents,uninit_bg,dir_index /dev/sdb2 - não pode ter espaçamento entre os parâmetros
+			mount /dev/sdb2/ /backup
+			sha1sum * 2> /dev/null > /opt/result02.txt
+			cat /opt/result01.txt /opt/result02.txt
+			
+			
+				
+				
+					
+				
+
+
+				
+				
+
+				
+		
+			
