@@ -570,13 +570,270 @@
 			
 			
 				
+			vim /etc/fstab - colocar os dispositivos no arquivo de inicialização
+				i - modo de inserção
+					LABEL=git		/home/analista/git	ext4	defaults	0	0
+					LABEL=backup	/backup				ext4	defaults	0	0
+				ESC
+				:wq
+				mount -va - apresentar a mensagem de sucesso
 				
+			cpio -iv < /backup/linuxforce.cpio - extrai (-i) o arquivo que está em /bakup/linuxforce.cpio
+			tar -xjvf /backup/log.tar.bz2 -C /tmp/ - extrai(-C) o arquivo compactado pelo .tar.bz2 em /tmp
+			
+			
+			
+			
+			IP's privados
+				10.x.x.x
+				172.16.x.x
+				192.x.x.x
+				ip a - mostra qual o ip da máquina
+				Configurações dos dispositivos de rede (drivers)
+					NAT - utiliza a própria placa de rede física (internet)
+					Modo Bridge - comunica com a máquina física (internet), e com as máquinas virtuais
+					Rede Interna - permite comunicação somente entre máquinas virtuais
+					Host Only - somente para comunicação com a máquina Cliente externo .... VPN de fora para dentro
 					
-				
+				https://calculadoraip.com.br/
+					CLASSE C
+						192.168.1.100
+						255.255.255.0 = /24 11111111.11111111.11111111.00000000 (em bits) -> 3*8 = 24 bits
+							0 = desligado
+							1 = ligado
+							
+						endereço de rede - 192.168.1.x - o prefixo
+						endereço de host - 192.168.1.(1~254) o final 
+						rede com no máximo 254 máquinas
+						
+						255.255.240.0 = /20 11111111.11111111.11110000.00000000 (em bits) -> 8+8+4 = 20 bits
+						rede com no máximo 4094 máquinas
+							hosts -> 162.168.0.1 até 192.168.15.254
 
+			
+		Cliente Interno
+				Rede Adaptador
+					Rede Interna
+					
+			su - root
+			FKDN - nome totalmente qualificado da máquina (nome + domínio)
+			hostnamectl set-hostname interno.asf.com - setou o FKDN para interno.asf.com
+			ip a - ip address
+				1: lo - local (comunicação com ela mesma) serviços dentro dela
+				2: enp0s3 - placa de rede da máquina (virtual)
+			vim /etc/network/interfaces - arquivo de configuração de interfaces de rede (Debian)
+			
+				auto enp0s3 				- quando estiver ligando, sobe automaticamente este endereço
+				iface enp0s3 inet static	- irá receber ip estático
+					address 192.168.1.100
+					netmask 255.255.255.0
+					gateway 192.168.1.1
+				ESC
+				:wq
+			
+			
+			systemctl restart networking - restarta a interface de rede
+			shutdown -r now -  reinicia a máquina
+		
+			vim /etc/resolv.conf
+				adicionar as seguintes informações (configurações estruturantes de um DNS)
+					search asf.com
+					domain asf.com
+					nameserver 192.168.1.10
+					nameserver 192.168.1.20
+					nameserver 8.8.8.8			- (google)
+				wq:
+				
+				chattr +i /etc/resolv.conf - seta o arquivo, para que ele não tenha mais seu conteúdo ou permissões alteradas (não consegue deletar também)
+				chattr -i /etc/resolv.conf - permite novamente a edição do arquivo
+				lsattr /etc/resolv.conf - lista os atributos do arquivo (+i)
+				
+				
+		Configurando a máquina Intranet
+			Rede Interna
+			
+			
+				hostnamectl set-hostname intranet.asf.com
+				ip a
+				vim /etc/network/interfaces
+					auto enp0s3
+					iface enp0s3 inet static
+						address 192.168.1.10
+						netmask 255.255.255.0
+						gateway 192.168.1.1
+					ESC
+					:wq
+				
+				systemctl restart networking - restarta a interface de rede
+				shutdown -r now -  reinicia a máquina
+			
+				vim /etc/resolv.conf
+					adicionar as seguintes informações (configurações estruturantes de um DNS)
+						search asf.com
+						domain asf.com
+						nameserver 192.168.1.10
+						nameserver 192.168.1.20
+						nameserver 8.8.8.8
+					wq:
+					
+					chattr +i /etc/resolv.conf
+		
+		Configurando a máquina Datacenter
+			Rede Interna
+			
+				hostnamectl set-hostname intranet.asf.com
+				ip a
+				vim /etc/network/interfaces
+					auto enp0s3
+					iface enp0s3 inet static
+						address 192.168.1.20
+						netmask 255.255.255.0
+						gateway 192.168.1.1
+					ESC
+					:wq
+				
+				systemctl restart networking
+				shutdown -r now
+			
+				vim /etc/resolv.conf
+					
+						search asf.com
+						domain asf.com
+						nameserver 192.168.1.10
+						nameserver 192.168.1.20
+						nameserver 8.8.8.8
+					wq:
+					
+					chattr +i /etc/resolv.conf
+				
+		Configurando a máquina Storage (CentOS)
+			Rede Interna
+			
+				hostnamectl set-hostname storage.asf.com
+				ip a
+				vim /etc/sysconfig/network-scripts/ifcfg-enp0s3
+					BOOTPROTO="static" - alterado
+					IPADDR=192.168.1.30 - adicionado daqui para baixo
+					NETMASK=255.255.255.0
+					GATEWAY=192.168.1.1
+					ESC
+					:wq
+				
+				ifdown enp0s3
+				ifup enp0s3
+							
+				vim /etc/resolv.conf
+					
+						search asf.com
+						domain asf.com
+						nameserver 192.168.1.10
+						nameserver 192.168.1.20
+						nameserver 8.8.8.8
+					wq:
+					
+					chattr +i /etc/resolv.conf
+				
+		
+		Configurando a máquina Datacenter (CentOS)
+			1ª NAT
+			2ª Rede Interna
+			3ª Host Only
+			
+				Arquivo
+					Host Network Manager
+						Propriedades
+							Endereço IPv4 200.50.100.1
+							Máscara de Rede IPv4 255.255.255.0
+							
+			Problemas em mudar o IPv4?
+					vim /etc/vbox/networks.conf - criar o arquivo networks.conf
+					* 0.0.0.0/0 ::/0
+					
+			hostnamectl set-hostname gateway.asf.com
+			cd /etc/sysconfig/network-scripts/
+			enp0s8 - 2ª placa de rede
+				vim ifcfg-enp0s8
+					TYPE=Ethernet
+					BOOTPROTO=static
+					DEVICE=enp0s8
+					NAME=enp0s8
+					ONBOOT=yes
+					IPADDR=192.168.1.1
+					NETMASK=255.255.255.0
+				:wq
+				ifup enp0s8
+				cp ifcfg-enp0s8 ifcfg-enp0s9 - copia o arquivo ifcfg-enp0s8 para o arquivo ifcfg-enp0s9
+			enp0s9 - 3ª placa de rede
+				TYPE=Ethernet
+				BOOTPROTO=static
+				DEVICE=enp0s9
+				NAME=enp0s9
+				ONBOOT=yes
+				IPADDR1=200.50.100.10
+				IPADDR2=200.50.100.20
+				NETMASK=255.255.255.0
+				:wq
+				ifup enp0s9
+				
+			vim /etc/resolv.conf
+				search asf.com
+				domain asf.com
+				nameserver 8.8.8.8
+				nameserver 192.168.1.10
+				nameserver 192.168.1.20
+			chattr +i /etc/resolv.conf	
+			
+			restart da máquina
+			
+			ping -c 4 <endereço/www.google.com>
+			systemctl stop firewalld - para o firewall existente na máquina
+			systemctl disable firewalld - desabilita o firewall durante o boot
+
+			yum install iptables-services -y
+			cd /sbin
+			wget https://github.com/rogerramossilva/linuxforce/raw/master/gateway/sbin/firewall.sh
+
+			chmod +x /sbin/firewall.sh
+			
+			cd /etc/
+			
+			vim /etc/yum.repos.d/CentOS-Base.repo
+
+				comentar a linha do mirror (add #)
+				descomentar a linha baseurl e alterar oa palavra mirror por vault (baseurl=http://vault.centos.org/$contentdir/$releasever/BaseOS/$basearch/os/)
+
+			vim /etc/yum.repos.d/CentOS-AppStream.repo
+
+				comentar a linha do mirror (add #)
+				descomentar a linha baseurl e alterar oa palavra mirror por vault (baseurl=http://vault.centos.org/$contentdir/$releasever/BaseOS/$basearch/os/)
+				
+			yum update
+			yum install iptables-services -y
+			rpm -q iptables-services - verifica se o iptables-services está instalado
+
+			systemctl enable iptables - para colocar o iptables durante a inicialização
+			
+			vim /etc/sysctl.conf - (arquivo relacionado a redirecionamento de pacotes)
+				net.ipv4.ip_forward = 1 (habilita) /  (desabilita)
+			sysctl -p
+			
+			firewall.sh
+			iptables -L - listar se as regras do firewall foram carregadas
+			
+			yum install dhcp-server -y - (dynamic) entrega dinâmica de configurações para o seu host
+			
+			
+			
+			
+			
+			
+
+			
 
 				
-				
+		ssh analista@200.50.100.10
+		PuTTY 200.50.100.10
+
 
 				
 		
