@@ -611,7 +611,7 @@
 							hosts -> 162.168.0.1 até 192.168.15.254
 
 			
-		Cliente Interno
+		Configurando a máquina Cliente Interno
 				Rede Adaptador
 					Rede Interna
 					
@@ -821,6 +821,79 @@
 			iptables -L - listar se as regras do firewall foram carregadas
 			
 			yum install dhcp-server -y - (dynamic) entrega dinâmica de configurações para o seu host
+			cd /etc/dhcp - confirma se foi instalado no diretório
+			
+			yum install git - instalação do git
+		
+		
+		Gerenciamento de Pacotes
+		
+			lista de caminhos com diretórios com versões específicas
+			
+			baixo nível - (dpkg) gerencia pacotes que já estão instalados na máquina, ou pacotes .deb (debian)
+			alto nível - (apt) checa dependências dos pacotes, e faz o processo de identificar e instalar as versões corretamente, com base nos repositórios
+			
+			cd /etc/apt/
+			
+			cat sources.list - diretórios da versão
+				main - principal
+				src - código fonte
+				
+			apt update - atualizar (apt) a base de índice
+				apt upgrade
+				
+			apt show htop - apresenta detalhes do programa, e suas dependências
+				apt install htop tcpdum -y - instala os programas htop e o tcpdum
+				
+			dpkg -l htop - verifica se foi instalado
+				dpkg -l htop tcpdump - verifica se foi instalado os programas htop e tcpdump
+				
+			apt search net - busca programas que tenham a palavra net
+			
+			apt download nmap - somente baixa o programa no diretório que você estiver
+			apt install nmap - baixa o programa e já instala
+			apt install -d nmap - realiza o download mas disponibiliza em outro lugar (/var/cache/apt/archives)
+			apt clean - limpa todos os pacotes que foram baixados e instalados (higienização no diretório cache do /var/cache/apt/archives)
+			apt autoclean - limpa os pacotes já depreciados
+			
+			cd /opt
+				apt build-dep nmap - baixar, compilar as dependências dele e instala as dependências, sem instalar o nmap (baixando as dependências)
+				apt source nmap - realiza o download do código fonte do programa nmap
+			apt remove tcpdump -y - remove a instalação, já confirmando
+			apt purge tcpdump -y - remove tudo relacionado a instalação do programa tcpdump, até arquivos modificados/customizados
+			
+			apt install aptitude - instala outro gerenciador de pacotes chamado aptitude
+			aptitude - 
+				q - opção para sair
+				
+			dpkg -l htop - sabe se está instalado
+			dpkg -I htop - informações sobre o programa
+			dpkg -C htop - mostra o que tem dentro do pacote, aonde serão criados, permissões 
+			dpkg -i htop - procede com a instalação do pacote
+			dpkg -s htop - para verificar status do htop instalado
+			dpkg -L htop - para verificar o local de instalação
+			dpkg -e htop - remove o programa
+			dpkg -P htop - expurga o programa
+			
+			apt install alien -y - instala o alien, que serve para realizar conversão do programa de debian(.deb) para outros (.rpm, etc)
+			
+			alien --help
+				alien -r htop - gera um novo arquivo na extensão .rpm, mantendo o antigo (não tem garantia 100% de que o arquivo .rpm irá executar)
+				
+			cd /opt
+				apt source htop
+				cd htop
+				./configure - checa se tudo que precisa, vai executar com sucesso, e gera um arquivo chamado make, gerando no final das etapas abaixo, um arquivo Makefile
+				make - compilando o pacote 
+				checa (opcional) 
+				make install (finalmente instalar)
+				make uninstall - remover
+				make clean - limpeza
+					ls -l Makefile
+					make
+					make install
+					htop --version - checa a versão instalada
+			
 			
 			
 			
