@@ -1,0 +1,491 @@
+
+
+	Máquinas Online
+
+		01 - Gateway
+		02 - Intranet
+		03 - Datacenter
+		04 - Cliente Interno
+		
+		www . asf . com .
+		<-----------------
+						raiz
+					comercial
+			 dominio / zona
+		host
+
+		Root Servers - servidores raiz, espalhados no mundo, que tem como objetivo principal, indicar um caminho de aonde encontrar quem um caminho possível (https://root-servers.org)
+			NS - nameserver (servidor DNS)
+			
+			via máquina Cliente Interno
+			
+				ssh -p 52010 analista@192.168.1.10
+					su - root
+					apt update
+					apt install bind9 bind9utils dnsutils -y
+					vim /etc/default/bind9
+						OPTIONS="-u bind -t /var/bind9/chroot" - editar para incluir após o -t
+					:wq
+					
+					apparmor - proteção de execuções das aplicações desconhecidas
+					
+					vim /etc/apparmor.d/usr.sbin.named
+					após a linha 23, inserir
+						  /var/bind9/chroot/etc/bind/** rw,
+						  /var/bind9/chroot/var/** rw,
+						  /var/bind9/chroot/dev/** rw,
+					:wq
+
+					mkdir -pv /var/bind9/chroot/{etc,dev,var/cache/bind,var/run/named}
+					mv /etc/bind /var/bind9/chroot/etc
+					ln -s /var/bind9/chroot/etc/bind/   /etc/bind
+					cd /var/bind9/chroot/dev/
+					mknod null c 1 3
+					mknod random c 1 8
+					ls -l
+					chmod 660 *			
+					cp /etc/localtime /var/bind9/chroot/etc/
+					timedatectl
+					chown bind:bind /var/bind9/chroot/etc/bind/rndc.key
+					chown bind:bind -R /var/bind9/chroot/var/
+					chmod 775 -R /var/bind9/chroot/var/
+					vim /etc/init.d/bind9
+						PIDFILE=/var/bind9/chroot/var/run/named/named.pid - inserir o prefixo na linha 28
+					systemctl restart bind9
+					vim named.conf.default-zones
+						view "all" {
+							match-clients { any; };
+							
+							zone "." {
+								type hint;
+								file "/var/cache/bind/root.hints"; - alterada esta linha
+							}
+						}; - na última linha do arquivo
+					:wq
+					cp -p /usr/share/dns/root.hints  /var/bind9/chroot/var/cache/bind/
+					systemctl restart bind9
+
+				ssh -p 52020 analista@192.168.1.20
+					su - root
+					apt update
+					apt install bind9 bind9utils dnsutils -y
+					vim /etc/default/bind9
+						OPTIONS="-u bind -t /var/bind9/chroot" - editar para incluir após o -t
+					:wq
+					
+					vim /etc/apparmor.d/usr.sbin.named
+					após a linha 23, inserir
+						  /var/bind9/chroot/etc/bind/** rw,
+						  /var/bind9/chroot/var/** rw,
+						  /var/bind9/chroot/dev/** rw,
+					:wq
+
+					mkdir -pv /var/bind9/chroot/{etc,dev,var/cache/bind,var/run/named}
+					mv /etc/bind /var/bind9/chroot/etc
+					ln -s /var/bind9/chroot/etc/bind/   /etc/bind
+					cd /var/bind9/chroot/dev/
+					mknod null c 1 3
+					mknod random c 1 8
+					ls -l
+					chmod 660 *
+					cp /etc/localtime /var/bind9/chroot/etc/
+					timedatectl
+					chown bind:bind /var/bind9/chroot/etc/bind/rndc.key
+					chown bind:bind -R /var/bind9/chroot/var/
+					chmod 775 -R /var/bind9/chroot/var/
+					vim /etc/init.d/bind9
+						PIDFILE=/var/bind9/chroot/var/run/named/named.pid - inserir o prefixo na linha 28
+					systemctl restart bind9
+					systemctl status bind9.service - status da execução do serviço bind9
+					cd /ect/bind
+					vim named.conf.default-zones
+						view "all" {
+							match-clients { any; };
+							
+							zone "." {
+								type hint;
+								file "/var/cache/bind/root.hints"; - alterada esta linha
+							}
+						}; - na última linha do arquivo
+					:wq
+					cp -p /usr/share/dns/root.hints  /var/bind9/chroot/var/cache/bind/
+					systemctl restart bind9
+					
+				Máquina Intranet
+					
+					dig +short @192.168.1.10 www.uol.com.br
+					dig +short @8.8.8.8 www.uol.com.br
+					cd /ect/bind
+					ls -l named.conf*
+					cat named.conf
+					dnssec-keygen -a HMAC-MD5 -b 512 -n HOST rndc-key 
+					ls -l *.private
+					cat *.private
+					cat *.private |grep -i key: > tsig.key
+					vim tsig.key
+						key "TRANSFER" {
+							algorithm hmac-md5;
+							secret "senha presente no arquivo tsig.key";
+						};
+
+						server 192.168.1.20 {
+								keys { TRANSFER; };
+						};
+					:wq
+					cat bind.keys
+					vim named.conf
+						include "/etc/bind/tsig.key";
+						include "/etc/bind/bind.keys";
+					:wq
+					named-checkconf -v /etc/bind/named.conf - confirmar se toda a configuração está válida
+					scp -P 52020 tsig.key analista@192.168.1.20:/tmp/ - security copy informando a porta (-p) através do ip para o diretório (/tmp/)
+
+					apt install git -y
+					cd /root/
+					git clone https://github.com/rogerramossilva/linuxforce
+					cp /root/linuxforce/intranet/bind_chroot/etc/bind/named.conf.options   /etc/bind/
+					cp /root/linuxforce/intranet/bind_chroot/etc/bind/named.conf.local   /etc/bind/
+					vim /etc/bind/named.conf.options
+					
+					cd /etc/bind
+					vim named.conf.local - configurações das zonas
+					cd /var/bind9/chroot/var/cache/bind/
+					cp /root/linuxforce/intranet/bind_chroot/bind/*  /var/bind9/chroot/var/cache/bind/
+					vim db.asf.interna
+						tipo A - apontamento de nome para IP
+						CNAME - (common name) apelido para 
+						MX - endereço e-mail
+						AAAA - IPv6
+						serial; uma vez que alterou o conteúdo do arquivo, atualizar este serial com o padrão YYYYMMDDHH
+						www - alterar o ip para 192.168.1.30
+						express IN A 192.168.1.10 - adicionar na última linha
+					vim db.asf.externa
+					named-checkzone asf.com db.asf.interna
+					named-checkzone asf.com db.asf.externa
+					systemctl restart bind9
+
+					dig +short @192.168.1.10 www.asf.com
+					dig +short @192.168.1.10 asf.com  mx
+					dig +short @192.168.1.10 asf.com  ns
+					dig +short @192.168.1.10 asf.com  soa
+					
+					vim rev.asf.interna
+						PTR - ponteiro
+					vim rev.asf.externa
+					systemctl restart bind9
+					
+					dig +short @192.168.1.10  -x 192.168.1.1 - gateway.asf.com.
+					dig +short @192.168.1.10  -x 192.168.1.30 - storage.asf.com.
+					dig +short @192.168.1.10  -x 192.168.1.100 - interno.asf.com.
+					dig +short @192.168.1.10  -x 192.168.1.20 - datacenter.asf.com.
+					
+				Máquina Datacenter
+				
+					mv /tmp/tsig.key /etc/bind
+					cd /etc/bind
+					
+					vim tsig.key
+						server 192.168.1.10
+					:wq
+					vim named.conf
+						include "/etc/bind/tsig.key";
+						include "/etc/bind/bind.keys";
+					:wq
+					
+					named-checkconf /etc/bind/named.conf
+					named.conf.options
+					apt install git -y
+					cd /root/
+					git clone https://github.com/rogerramossilva/linuxforce
+
+					cp /root/linuxforce/datacenter/bind_chroot/etc/bind/named.conf.options  /etc/bind/
+					cp /root/linuxforce/datacenter/bind_chroot/etc/bind/named.conf.local   /etc/bind/
+
+					vim /etc/bind/named.conf.options
+					:wq
+					ss -ntpl
+					ss -ntplu
+				
+					dig +short @192.168.1.10 www.uol.com.br
+
+					vim /etc/bind/named.conf.local
+
+					systemctl restart bind9
+
+					dig +short @192.168.1.20  -x 192.168.1.20
+					dig +short @192.168.1.20 express.asf.com		
+
+				Máquina Cliente Externo
+				
+					Rede - 1ª placa como Host-Only
+						   2ª placa como NAT
+						   
+					cd /etc/network
+					vim interfaces
+						auto enp0s3
+						iface enp0s3 inet static
+								address 200.50.100.100
+								netmask 255.255.255.0
+
+					systemctl restart networking
+					ping -c 2 200.50.100.20
+					ping -c 2 200.50.100.10
+
+					vim /etc/resolv.conf
+						domain	asf.com
+						search 	asf.com
+						nameserver 200.50.100.10
+						nameserver 200.50.100.20
+						nameserver 8.8.8.8
+						
+					chattr +i /etc/resolv.conf
+					ap update
+						s / s / s
+					apt install dnsutils
+			
+				Máquina Gateway
+
+					vim /sbin/firewall.sh
+						NAT SESSION
+							# 2 - remover os comentários das duas linhas
+								toda conexão que o protocolo for udp, e a interface de entrada de rede for a enp0s9, se o ip de origem da conexão for 200.50.100.100, e se o destino da conexão for 200.50.100.10, e porta do serviço for a 53 (dns) mudar o endereço de destino para 192.168.1.10 na porta de destino 53
+						OUTPUT		
+							# 5 - iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
+						INPUT
+							# 6 - iptables -A INPUT -p udp --sport 53 -j ACCEPT
+							
+				Máquina Cliente Externo
+						
+					dig +short @200.50.100.10 www.asf.com	- 200.50.100.10
+					dig +short @200.50.100.10 -x 200.50.100.20 - mail.asf.com.
+					ping -c 2 mail.asf.com
+						PING mail.asf.com (200.50.100.20) 56(84) bytes of data.
+						64 bytes from mail.asf.com (200.50.100.20): icmp_seq=1 ttl=64 time=0.310 ms
+						64 bytes from mail.asf.com (200.50.100.20): icmp_seq=2 ttl=64 time=0.578 ms
+
+						--- mail.asf.com ping statistics ---
+						2 packets transmitted, 2 received, 0% packet loss, time 4ms
+						rtt min/avg/max/mdev = 0.310/0.444/0.578/0.134 ms
+
+				Máquina Datacenter
+				
+					mta - mail transport agent (transferência de email entre servidores)
+						ferramentas - exim, postfix, sendmail, qmail, exchange
+					mua - ferramentas cliente (thunderbird / outlook / webmail.asf.com)
+					mda - mail delivery agent (protocolos pop ou imap)
+					
+					apt update
+					apt install postfix procmail bsd-mailx -y
+						Site da Internet <tab>
+						asf.com <tab>
+					/ect/postfix/main.cf - configurações do postfix
+					postconf - alterar via comandos as configurações do postfix
+					systemctl status postfix
+					systemctl is-enabled postfix
+					systemctl is-active postfix
+					cd /etc/postfix
+					postconf |more - mostra todos os parâmetros do postfix
+					postconf |grep mailbox - tudo relacionado a mailbox
+					postconf -e mailbox_sixe_limit = 10000 - já utiliza o parâmetro editando o conteúdo dele dentro do main.cf 		
+					ss -ntpl - retorna as portas sendo utilizadas no momento
+						smtp - portas 25 ou 465 (tcp)
+					vim master.cf
+						linhas 29, 30 e 31 - remover os comentários
+						smtps	inet n	-	y	-	-	smtpd
+							-o syslog_name=postfix/smtps
+							-o smtpd_tlx_wrappermode=yes
+					:wq
+					systemctl restart postfix
+					ss -ntpl - além da porta 25, está usando a 465 (stmps) também
+					apt install courier-authdaemon courier-authlib courier-base courier-imap courier-pop -y
+					courier-base
+						sim <tab>
+						ok <enter>
+						ok <enter>
+					cp /etc/pam.d/pop3	/etc/pam.d/smtp
+					cp /root/linuxforce/datacenter/postfix/etc/postfix/main.cf	/etc/postfix
+					vim /etc/postfix/main.cf
+						smtpd_banner - mensagem que será apresentada para qualquer usuário que se comunicar com ele
+						append_dot_domain - completa o dominio caso o mua falhe na atribuição ()
+						mydomain = asf.com - inserir após o myhostname
+						alias_maps - apelidos
+					:wq
+					vim /etc/aliases
+						adicionar
+							rh: analista@asf.com
+							curriculo: analista@asf.com
+							ti: root - automáticamente ele completa em tempo de execução com o domínio @asf.com
+					:wq
+					postaliases /etc/aliases - gera ou atualiza o arquivo aliases.db
+					ls -l /etc/aliases*
+					vim main.cf
+						smtpd_sasl_local_domain = asf.com
+					:x!
+					maildirmake Maildir
+					maildirmake Maildir/.Enviados
+					maildirmake Maildir/.Rascunhos
+					maildirmake Maildir/.Lixeiras
+					maildirmake Maildir/.Spam
+					ls -la /etc/skel/Maildir/
+					/root/linuxforce/datacenter/postfix/mail_user.sh
+					adduser maria
+					adduser joao
+					systemctl restart courier-authdaemon courier-imap courier-pop postfix
+					systemctl enable courier-authdaemon courier-imap courier-pop postfix
+					ping -c 4 mail.asf.com - deve responder no ip 192.168.1.20!
+					telnet mail.asf.com 25
+						220 MTA ASF Cybersecurity - deve ser apresentado isso na tela como resposta
+					helo mail
+					mail from: root
+					rcpt to: analista@asf.com
+					data
+					subject: teste
+					a
+					a
+					. - encerra o conteúdo do email
+					quit - sai
+					códigos iniciados com 2 e 3 - sucessos
+					códigos iniciados com 4 e 5 - erro
+					mailq
+					postqueue -p
+					cat /etc/hosts |mail -s "Segundo e-mail" ti@asf.com
+					mail -s "Terceiro e-mail" maria@asf.com
+						Teste
+						novo teste
+						.
+						joao@asf.com - Cc
+					mailq
+					tail -f /var/log/mail.log - log de envio de e-mail
+					apt install libsasl2-2 sasl2-bin libsasl2-modules libdb4.6 -y
+					cd /etc/default
+					vim /etc/default/saslauthd
+						START=yes
+						OPTIONS="-c -m /var/spool/postfix/var/run/saslauthd
+					:wq
+					adduser postfix sasl
+					cp /root/linuxforce/datacenter/postfix/etc/sasl/smtpd.conf /etc/postfix/sasl/
+					systemctl enable saslauthd
+					systemctl restart saslauthd
+					mkdir -p /etc/postfix/ssl
+					cd /etc/postfix/ssl
+					1 -  Criar a chave
+						openssl genrsa -out webmail.key 1024
+					2 - Criar o arquivo de requisição
+						openssl req -new -key webmail.key -out webmail.csr
+							BR
+							SAO PAULO
+							SAO PAULO
+							ASF
+							TI
+							mail.asf.com
+							analista@asf.com
+							<enter>
+							<enter>
+					3 - Assinar o certificado com a chave
+						openssl x509 -req -days 365 -in webmail.csr -signkey webmail.key -out webmail.crt
+
+					Gerando os arquivos que serão validados pela unidade certificadora
+						openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 365
+							senha (default)
+							senha (default)
+							BR
+							SAO PAULO
+							SAO PAULO
+							ASF
+							TI
+							mail.asf.com
+							analista@asf.com
+					cd /etc/postfix
+					systemctl restart postfix
+					
+			Máquina Cliente Interno
+			
+				apt update
+				apt install thunderbird -y - instalação do cliente de e-mail (MUA)
+				ping -c 2 mail.asf.com - precisa imprimir o ip 192.168.1.20
+				abrir o Thunderbird
+					analista
+					analista@asf.com
+					senha <default>
+						<continue>
+						Configure manually
+							Incoming Server
+								Connection security: SSL/TLS
+							Outgoing server
+								Connection security: SSL/TLS
+						<done>
+						<Confirm Security Exception>
+
+				Máquina Datacenter
+
+					cat /etc/hosts |mail -s teste analista@asf.com
+					
+				Máquina Cliente Interno
+				
+					Thunderbird
+						Write
+							to analista@asf.com
+							Subject teste novo
+							Body teste Thunderbird
+						<send>
+						irá apresentar um erro <ok>
+						<confirm security exception>
+						<send>
+
+				Máquina Gateway
+				
+					vim /sbin/firewall.sh
+						descomentar as linhas 230 até 233
+						acrescentar na linha 230 a porta 465
+						habilitar a regra de número 8 na linha 198
+						e adicionar a porta 465 nas linhas 189 e 198
+					firewall.sh
+					
+				Máquina Cliente Externo
+				
+					apt update
+					apt install thunderbird -y
+					ping mail.asf.com -c 4- precisa imprimir o ip 200.50.100.20!
+					abrir um thunderbird
+						maria
+						maria@asf.com
+						senha <default>
+					
+				Máquina Gateway
+				
+					chattr -i /etc/resolv.conf
+					vim /etc/resolv.conf
+						colocar o nameserver da google 8.8.8.8 por último
+					chattr +i /etc/resolv.conf
+					firewall.sh
+					
+				Máquina Cliente Externo
+				
+					Thunderbird
+						maria
+						maria@asf.com
+						senha <default>
+						<continue>
+						Configure manually
+							Incoming Server
+								Connection security: SSL/TLS
+							Outgoing server
+								Connection security: SSL/TLS
+						<done>
+						<Confirm Security Exception>
+						
+						
+					
+					
+					
+
+					
+
+					
+
+
+
+					
+
+
+		
