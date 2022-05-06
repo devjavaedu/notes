@@ -1,12 +1,6 @@
 
+	Módulo 02
 
-	Máquinas Online
-
-		01 - Gateway
-		02 - Intranet
-		03 - Datacenter
-		04 - Cliente Interno
-		
 		www . asf . com .
 		<-----------------
 						raiz
@@ -112,482 +106,482 @@
 						cp -p /usr/share/dns/root.hints  /var/bind9/chroot/var/cache/bind/
 						systemctl restart bind9
 				
-			Máquina Intranet
-				
-				dig +short @192.168.1.10 www.uol.com.br
-				dig +short @8.8.8.8 www.uol.com.br
-				cd /ect/bind
-				ls -l named.conf*
-				cat named.conf
-				dnssec-keygen -a HMAC-MD5 -b 512 -n HOST rndc-key 
-				ls -l *.private
-				cat *.private
-				cat *.private |grep -i key: > tsig.key
-				vim tsig.key
-					key "TRANSFER" {
-						algorithm hmac-md5;
-						secret "senha presente no arquivo tsig.key";
-					};
-
-					server 192.168.1.20 {
-							keys { TRANSFER; };
-					};
-				:wq
-				cat bind.keys
-				vim named.conf
-					include "/etc/bind/tsig.key";
-					include "/etc/bind/bind.keys";
-				:wq
-				named-checkconf -v /etc/bind/named.conf - confirmar se toda a configuração está válida
-				scp -P 52020 tsig.key analista@192.168.1.20:/tmp/ - security copy informando a porta (-p) através do ip para o diretório (/tmp/)
-
-				apt install git -y
-				cd /root/
-				git clone https://github.com/rogerramossilva/linuxforce
-				cp /root/linuxforce/intranet/bind_chroot/etc/bind/named.conf.options   /etc/bind/
-				cp /root/linuxforce/intranet/bind_chroot/etc/bind/named.conf.local   /etc/bind/
-				vim /etc/bind/named.conf.options
-				
-				cd /etc/bind
-				vim named.conf.local - configurações das zonas
-				cd /var/bind9/chroot/var/cache/bind/
-				cp /root/linuxforce/intranet/bind_chroot/bind/*  /var/bind9/chroot/var/cache/bind/
-				vim db.asf.interna
-					tipo A - apontamento de nome para IP
-					CNAME - (common name) apelido para 
-					MX - endereço e-mail
-					AAAA - IPv6
-					serial; uma vez que alterou o conteúdo do arquivo, atualizar este serial com o padrão YYYYMMDDHH
-					www - alterar o ip para 192.168.1.30
-					express IN A 192.168.1.10 - adicionar na última linha
-				vim db.asf.externa
-				named-checkzone asf.com db.asf.interna
-				named-checkzone asf.com db.asf.externa
-				systemctl restart bind9
-
-				dig +short @192.168.1.10 www.asf.com
-				dig +short @192.168.1.10 asf.com  mx
-				dig +short @192.168.1.10 asf.com  ns
-				dig +short @192.168.1.10 asf.com  soa
-				
-				vim rev.asf.interna
-					PTR - ponteiro
-				vim rev.asf.externa
-				systemctl restart bind9
-				
-				dig +short @192.168.1.10  -x 192.168.1.1 - gateway.asf.com.
-				dig +short @192.168.1.10  -x 192.168.1.30 - storage.asf.com.
-				dig +short @192.168.1.10  -x 192.168.1.100 - interno.asf.com.
-				dig +short @192.168.1.10  -x 192.168.1.20 - datacenter.asf.com.
-				
-			Máquina Datacenter
-			
-				mv /tmp/tsig.key /etc/bind
-				cd /etc/bind
-				
-				vim tsig.key
-					server 192.168.1.10
-				:wq
-				vim named.conf
-					include "/etc/bind/tsig.key";
-					include "/etc/bind/bind.keys";
-				:wq
-				
-				named-checkconf /etc/bind/named.conf
-				named.conf.options
-				apt install git -y
-				cd /root/
-				git clone https://github.com/rogerramossilva/linuxforce
-
-				cp /root/linuxforce/datacenter/bind_chroot/etc/bind/named.conf.options  /etc/bind/
-				cp /root/linuxforce/datacenter/bind_chroot/etc/bind/named.conf.local   /etc/bind/
-
-				vim /etc/bind/named.conf.options
-				:wq
-				ss -ntpl
-				ss -ntplu
-			
-				dig +short @192.168.1.10 www.uol.com.br
-
-				vim /etc/bind/named.conf.local
-
-				systemctl restart bind9
-
-				dig +short @192.168.1.20  -x 192.168.1.20
-				dig +short @192.168.1.20 express.asf.com		
-
-			Máquina Cliente Externo
-			
-				Rede - 1ª placa como Host-Only
-					   2ª placa como NAT
-					   
-				cd /etc/network
-				vim interfaces
-					auto enp0s3
-					iface enp0s3 inet static
-							address 200.50.100.100
-							netmask 255.255.255.0
-
-				systemctl restart networking
-				ping -c 2 200.50.100.20
-				ping -c 2 200.50.100.10
-
-				vim /etc/resolv.conf
-					domain	asf.com
-					search 	asf.com
-					nameserver 200.50.100.10
-					nameserver 200.50.100.20
-					nameserver 8.8.8.8
+				Máquina Intranet
 					
-				chattr +i /etc/resolv.conf
-				ap update
-					s / s / s
-				apt install dnsutils
-		
-			Máquina Gateway
+					dig +short @192.168.1.10 www.uol.com.br
+					dig +short @8.8.8.8 www.uol.com.br
+					cd /ect/bind
+					ls -l named.conf*
+					cat named.conf
+					dnssec-keygen -a HMAC-MD5 -b 512 -n HOST rndc-key 
+					ls -l *.private
+					cat *.private
+					cat *.private |grep -i key: > tsig.key
+					vim tsig.key
+						key "TRANSFER" {
+							algorithm hmac-md5;
+							secret "senha presente no arquivo tsig.key";
+						};
 
-				vim /sbin/firewall.sh
-					NAT SESSION
-						# 2 - remover os comentários das duas linhas
-							toda conexão que o protocolo for udp, e a interface de entrada de rede for a enp0s9, se o ip de origem da conexão for 200.50.100.100, e se o destino da conexão for 200.50.100.10, e porta do serviço for a 53 (dns) mudar o endereço de destino para 192.168.1.10 na porta de destino 53
-					OUTPUT		
-						# 5 - iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
-					INPUT
-						# 6 - iptables -A INPUT -p udp --sport 53 -j ACCEPT
+						server 192.168.1.20 {
+								keys { TRANSFER; };
+						};
+					:wq
+					cat bind.keys
+					vim named.conf
+						include "/etc/bind/tsig.key";
+						include "/etc/bind/bind.keys";
+					:wq
+					named-checkconf -v /etc/bind/named.conf - confirmar se toda a configuração está válida
+					scp -P 52020 tsig.key analista@192.168.1.20:/tmp/ - security copy informando a porta (-p) através do ip para o diretório (/tmp/)
+
+					apt install git -y
+					cd /root/
+					git clone https://github.com/rogerramossilva/linuxforce
+					cp /root/linuxforce/intranet/bind_chroot/etc/bind/named.conf.options   /etc/bind/
+					cp /root/linuxforce/intranet/bind_chroot/etc/bind/named.conf.local   /etc/bind/
+					vim /etc/bind/named.conf.options
+					
+					cd /etc/bind
+					vim named.conf.local - configurações das zonas
+					cd /var/bind9/chroot/var/cache/bind/
+					cp /root/linuxforce/intranet/bind_chroot/bind/*  /var/bind9/chroot/var/cache/bind/
+					vim db.asf.interna
+						tipo A - apontamento de nome para IP
+						CNAME - (common name) apelido para 
+						MX - endereço e-mail
+						AAAA - IPv6
+						serial; uma vez que alterou o conteúdo do arquivo, atualizar este serial com o padrão YYYYMMDDHH
+						www - alterar o ip para 192.168.1.30
+						express IN A 192.168.1.10 - adicionar na última linha
+					vim db.asf.externa
+					named-checkzone asf.com db.asf.interna
+					named-checkzone asf.com db.asf.externa
+					systemctl restart bind9
+
+					dig +short @192.168.1.10 www.asf.com
+					dig +short @192.168.1.10 asf.com  mx
+					dig +short @192.168.1.10 asf.com  ns
+					dig +short @192.168.1.10 asf.com  soa
+					
+					vim rev.asf.interna
+						PTR - ponteiro
+					vim rev.asf.externa
+					systemctl restart bind9
+					
+					dig +short @192.168.1.10  -x 192.168.1.1 - gateway.asf.com.
+					dig +short @192.168.1.10  -x 192.168.1.30 - storage.asf.com.
+					dig +short @192.168.1.10  -x 192.168.1.100 - interno.asf.com.
+					dig +short @192.168.1.10  -x 192.168.1.20 - datacenter.asf.com.
+					
+				Máquina Datacenter
+				
+					mv /tmp/tsig.key /etc/bind
+					cd /etc/bind
+					
+					vim tsig.key
+						server 192.168.1.10
+					:wq
+					vim named.conf
+						include "/etc/bind/tsig.key";
+						include "/etc/bind/bind.keys";
+					:wq
+					
+					named-checkconf /etc/bind/named.conf
+					named.conf.options
+					apt install git -y
+					cd /root/
+					git clone https://github.com/rogerramossilva/linuxforce
+
+					cp /root/linuxforce/datacenter/bind_chroot/etc/bind/named.conf.options  /etc/bind/
+					cp /root/linuxforce/datacenter/bind_chroot/etc/bind/named.conf.local   /etc/bind/
+
+					vim /etc/bind/named.conf.options
+					:wq
+					ss -ntpl
+					ss -ntplu
+				
+					dig +short @192.168.1.10 www.uol.com.br
+
+					vim /etc/bind/named.conf.local
+
+					systemctl restart bind9
+
+					dig +short @192.168.1.20  -x 192.168.1.20
+					dig +short @192.168.1.20 express.asf.com		
+
+				Máquina Cliente Externo
+				
+					Rede - 1ª placa como Host-Only
+						   2ª placa como NAT
+						   
+					cd /etc/network
+					vim interfaces
+						auto enp0s3
+						iface enp0s3 inet static
+								address 200.50.100.100
+								netmask 255.255.255.0
+
+					systemctl restart networking
+					ping -c 2 200.50.100.20
+					ping -c 2 200.50.100.10
+
+					vim /etc/resolv.conf
+						domain	asf.com
+						search 	asf.com
+						nameserver 200.50.100.10
+						nameserver 200.50.100.20
+						nameserver 8.8.8.8
 						
-			Máquina Cliente Externo
-					
-				dig +short @200.50.100.10 www.asf.com	- 200.50.100.10
-				dig +short @200.50.100.10 -x 200.50.100.20 - mail.asf.com.
-				ping -c 2 mail.asf.com
-					PING mail.asf.com (200.50.100.20) 56(84) bytes of data.
-					64 bytes from mail.asf.com (200.50.100.20): icmp_seq=1 ttl=64 time=0.310 ms
-					64 bytes from mail.asf.com (200.50.100.20): icmp_seq=2 ttl=64 time=0.578 ms
-
-					--- mail.asf.com ping statistics ---
-					2 packets transmitted, 2 received, 0% packet loss, time 4ms
-					rtt min/avg/max/mdev = 0.310/0.444/0.578/0.134 ms
-
-			Máquina Datacenter
+					chattr +i /etc/resolv.conf
+					ap update
+						s / s / s
+					apt install dnsutils
 			
-				mta - mail transport agent (transferência de email entre servidores)
-					ferramentas - exim, postfix, sendmail, qmail, exchange
-				mua - ferramentas cliente (thunderbird / outlook / webmail.asf.com)
-				mda - mail delivery agent (protocolos pop ou imap)
+				Máquina Gateway
+
+					vim /sbin/firewall.sh
+						NAT SESSION
+							# 2 - remover os comentários das duas linhas
+								toda conexão que o protocolo for udp, e a interface de entrada de rede for a enp0s9, se o ip de origem da conexão for 200.50.100.100, e se o destino da conexão for 200.50.100.10, e porta do serviço for a 53 (dns) mudar o endereço de destino para 192.168.1.10 na porta de destino 53
+						OUTPUT		
+							# 5 - iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
+						INPUT
+							# 6 - iptables -A INPUT -p udp --sport 53 -j ACCEPT
+							
+				Máquina Cliente Externo
+						
+					dig +short @200.50.100.10 www.asf.com	- 200.50.100.10
+					dig +short @200.50.100.10 -x 200.50.100.20 - mail.asf.com.
+					ping -c 2 mail.asf.com
+						PING mail.asf.com (200.50.100.20) 56(84) bytes of data.
+						64 bytes from mail.asf.com (200.50.100.20): icmp_seq=1 ttl=64 time=0.310 ms
+						64 bytes from mail.asf.com (200.50.100.20): icmp_seq=2 ttl=64 time=0.578 ms
+
+						--- mail.asf.com ping statistics ---
+						2 packets transmitted, 2 received, 0% packet loss, time 4ms
+						rtt min/avg/max/mdev = 0.310/0.444/0.578/0.134 ms
+
+				Máquina Datacenter
 				
-				apt update
-				apt install postfix procmail bsd-mailx -y
-					Site da Internet <tab>
-					asf.com <tab>
-				/ect/postfix/main.cf - configurações do postfix
-				postconf - alterar via comandos as configurações do postfix
-				systemctl status postfix
-				systemctl is-enabled postfix
-				systemctl is-active postfix
-				cd /etc/postfix
-				postconf |more - mostra todos os parâmetros do postfix
-				postconf |grep mailbox - tudo relacionado a mailbox
-				postconf -e mailbox_sixe_limit = 10000 - já utiliza o parâmetro editando o conteúdo dele dentro do main.cf 		
-				ss -ntpl - retorna as portas sendo utilizadas no momento
-					smtp - portas 25 ou 465 (tcp)
-				vim master.cf
-					linhas 29, 30 e 31 - remover os comentários
-					smtps	inet n	-	y	-	-	smtpd
-						-o syslog_name=postfix/smtps
-						-o smtpd_tlx_wrappermode=yes
-				:wq
-				systemctl restart postfix
-				ss -ntpl - além da porta 25, está usando a 465 (stmps) também
-				apt install courier-authdaemon courier-authlib courier-base courier-imap courier-pop -y
-				courier-base
-					sim <tab>
-					ok <enter>
-					ok <enter>
-				cp /etc/pam.d/pop3	/etc/pam.d/smtp
-				cp /root/linuxforce/datacenter/postfix/etc/postfix/main.cf	/etc/postfix
-				vim /etc/postfix/main.cf
-					smtpd_banner - mensagem que será apresentada para qualquer usuário que se comunicar com ele
-					append_dot_domain - completa o dominio caso o mua falhe na atribuição ()
-					mydomain = asf.com - inserir após o myhostname
-					alias_maps - apelidos
-				:wq
-				vim /etc/aliases
-					adicionar
-						rh: analista@asf.com
-						curriculo: analista@asf.com
-						ti: root - automáticamente ele completa em tempo de execução com o domínio @asf.com
-				:wq
-				postaliases /etc/aliases - gera ou atualiza o arquivo aliases.db
-				ls -l /etc/aliases*
-				vim main.cf
-					smtpd_sasl_local_domain = asf.com
-				:x!
-				maildirmake Maildir
-				maildirmake Maildir/.Enviados
-				maildirmake Maildir/.Rascunhos
-				maildirmake Maildir/.Lixeiras
-				maildirmake Maildir/.Spam
-				ls -la /etc/skel/Maildir/
-				/root/linuxforce/datacenter/postfix/mail_user.sh
-				adduser maria
-				adduser joao
-				systemctl restart courier-authdaemon courier-imap courier-pop postfix
-				systemctl enable courier-authdaemon courier-imap courier-pop postfix
-				ping -c 4 mail.asf.com - deve responder no ip 192.168.1.20!
-				telnet mail.asf.com 25
-					220 MTA ASF Cybersecurity - deve ser apresentado isso na tela como resposta
-				helo mail
-				mail from: root
-				rcpt to: analista@asf.com
-				data
-				subject: teste
-				a
-				a
-				. - encerra o conteúdo do email
-				quit - sai
-				códigos iniciados com 2 e 3 - sucessos
-				códigos iniciados com 4 e 5 - erro
-				mailq
-				postqueue -p
-				cat /etc/hosts |mail -s "Segundo e-mail" ti@asf.com
-				mail -s "Terceiro e-mail" maria@asf.com
-					Teste
-					novo teste
-					.
-					joao@asf.com - Cc
-				mailq
-				tail -f /var/log/mail.log - log de envio de e-mail
-				apt install libsasl2-2 sasl2-bin libsasl2-modules libdb4.6 -y
-				cd /etc/default
-				vim /etc/default/saslauthd
-					START=yes
-					OPTIONS="-c -m /var/spool/postfix/var/run/saslauthd
-				:wq
-				adduser postfix sasl
-				cp /root/linuxforce/datacenter/postfix/etc/sasl/smtpd.conf /etc/postfix/sasl/
-				systemctl enable saslauthd
-				systemctl restart saslauthd
-				mkdir -p /etc/postfix/ssl
-				cd /etc/postfix/ssl
-				1 -  Criar a chave
-					openssl genrsa -out webmail.key 1024
-				2 - Criar o arquivo de requisição
-					openssl req -new -key webmail.key -out webmail.csr
-						BR
-						SAO PAULO
-						SAO PAULO
-						ASF
-						TI
-						mail.asf.com
+					mta - mail transport agent (transferência de email entre servidores)
+						ferramentas - exim, postfix, sendmail, qmail, exchange
+					mua - ferramentas cliente (thunderbird / outlook / webmail.asf.com)
+					mda - mail delivery agent (protocolos pop ou imap)
+					
+					apt update
+					apt install postfix procmail bsd-mailx -y
+						Site da Internet <tab>
+						asf.com <tab>
+					/ect/postfix/main.cf - configurações do postfix
+					postconf - alterar via comandos as configurações do postfix
+					systemctl status postfix
+					systemctl is-enabled postfix
+					systemctl is-active postfix
+					cd /etc/postfix
+					postconf |more - mostra todos os parâmetros do postfix
+					postconf |grep mailbox - tudo relacionado a mailbox
+					postconf -e mailbox_sixe_limit = 10000 - já utiliza o parâmetro editando o conteúdo dele dentro do main.cf 		
+					ss -ntpl - retorna as portas sendo utilizadas no momento
+						smtp - portas 25 ou 465 (tcp)
+					vim master.cf
+						linhas 29, 30 e 31 - remover os comentários
+						smtps	inet n	-	y	-	-	smtpd
+							-o syslog_name=postfix/smtps
+							-o smtpd_tlx_wrappermode=yes
+					:wq
+					systemctl restart postfix
+					ss -ntpl - além da porta 25, está usando a 465 (stmps) também
+					apt install courier-authdaemon courier-authlib courier-base courier-imap courier-pop -y
+					courier-base
+						sim <tab>
+						ok <enter>
+						ok <enter>
+					cp /etc/pam.d/pop3	/etc/pam.d/smtp
+					cp /root/linuxforce/datacenter/postfix/etc/postfix/main.cf	/etc/postfix
+					vim /etc/postfix/main.cf
+						smtpd_banner - mensagem que será apresentada para qualquer usuário que se comunicar com ele
+						append_dot_domain - completa o dominio caso o mua falhe na atribuição ()
+						mydomain = asf.com - inserir após o myhostname
+						alias_maps - apelidos
+					:wq
+					vim /etc/aliases
+						adicionar
+							rh: analista@asf.com
+							curriculo: analista@asf.com
+							ti: root - automáticamente ele completa em tempo de execução com o domínio @asf.com
+					:wq
+					postaliases /etc/aliases - gera ou atualiza o arquivo aliases.db
+					ls -l /etc/aliases*
+					vim main.cf
+						smtpd_sasl_local_domain = asf.com
+					:x!
+					maildirmake Maildir
+					maildirmake Maildir/.Enviados
+					maildirmake Maildir/.Rascunhos
+					maildirmake Maildir/.Lixeiras
+					maildirmake Maildir/.Spam
+					ls -la /etc/skel/Maildir/
+					/root/linuxforce/datacenter/postfix/mail_user.sh
+					adduser maria
+					adduser joao
+					systemctl restart courier-authdaemon courier-imap courier-pop postfix
+					systemctl enable courier-authdaemon courier-imap courier-pop postfix
+					ping -c 4 mail.asf.com - deve responder no ip 192.168.1.20!
+					telnet mail.asf.com 25
+						220 MTA ASF Cybersecurity - deve ser apresentado isso na tela como resposta
+					helo mail
+					mail from: root
+					rcpt to: analista@asf.com
+					data
+					subject: teste
+					a
+					a
+					. - encerra o conteúdo do email
+					quit - sai
+					códigos iniciados com 2 e 3 - sucessos
+					códigos iniciados com 4 e 5 - erro
+					mailq
+					postqueue -p
+					cat /etc/hosts |mail -s "Segundo e-mail" ti@asf.com
+					mail -s "Terceiro e-mail" maria@asf.com
+						Teste
+						novo teste
+						.
+						joao@asf.com - Cc
+					mailq
+					tail -f /var/log/mail.log - log de envio de e-mail
+					apt install libsasl2-2 sasl2-bin libsasl2-modules libdb4.6 -y
+					cd /etc/default
+					vim /etc/default/saslauthd
+						START=yes
+						OPTIONS="-c -m /var/spool/postfix/var/run/saslauthd
+					:wq
+					adduser postfix sasl
+					cp /root/linuxforce/datacenter/postfix/etc/sasl/smtpd.conf /etc/postfix/sasl/
+					systemctl enable saslauthd
+					systemctl restart saslauthd
+					mkdir -p /etc/postfix/ssl
+					cd /etc/postfix/ssl
+					1 -  Criar a chave
+						openssl genrsa -out webmail.key 1024
+					2 - Criar o arquivo de requisição
+						openssl req -new -key webmail.key -out webmail.csr
+							BR
+							SAO PAULO
+							SAO PAULO
+							ASF
+							TI
+							mail.asf.com
+							analista@asf.com
+							<enter>
+							<enter>
+					3 - Assinar o certificado com a chave
+						openssl x509 -req -days 365 -in webmail.csr -signkey webmail.key -out webmail.crt
+
+					Gerando os arquivos que serão validados pela unidade certificadora
+						openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 365
+							senha (default)
+							senha (default)
+							BR
+							SAO PAULO
+							SAO PAULO
+							ASF
+							TI
+							mail.asf.com
+							analista@asf.com
+					cd /etc/postfix
+					systemctl restart postfix
+					
+				Máquina Cliente Interno
+				
+					apt update
+					apt install thunderbird -y - instalação do cliente de e-mail (MUA)
+					ping -c 2 mail.asf.com - precisa imprimir o ip 192.168.1.20
+					abrir o Thunderbird
+						analista
 						analista@asf.com
-						<enter>
-						<enter>
-				3 - Assinar o certificado com a chave
-					openssl x509 -req -days 365 -in webmail.csr -signkey webmail.key -out webmail.crt
+						senha <default>
+							<continue>
+							Configure manually
+								Incoming Server
+									Connection security: SSL/TLS
+								Outgoing server
+									Connection security: SSL/TLS
+							<done>
+							<Confirm Security Exception>
 
-				Gerando os arquivos que serão validados pela unidade certificadora
-					openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 365
-						senha (default)
-						senha (default)
-						BR
-						SAO PAULO
-						SAO PAULO
-						ASF
-						TI
-						mail.asf.com
-						analista@asf.com
-				cd /etc/postfix
-				systemctl restart postfix
-				
-		Máquina Cliente Interno
-		
-			apt update
-			apt install thunderbird -y - instalação do cliente de e-mail (MUA)
-			ping -c 2 mail.asf.com - precisa imprimir o ip 192.168.1.20
-			abrir o Thunderbird
-				analista
-				analista@asf.com
-				senha <default>
-					<continue>
-					Configure manually
-						Incoming Server
-							Connection security: SSL/TLS
-						Outgoing server
-							Connection security: SSL/TLS
-					<done>
-					<Confirm Security Exception>
+				Máquina Datacenter
 
-			Máquina Datacenter
-
-				cat /etc/hosts |mail -s teste analista@asf.com
-				
-			Máquina Cliente Interno
-			
-				Thunderbird
-					Write
-						to analista@asf.com
-						Subject teste novo
-						Body teste Thunderbird
-					<send>
-					irá apresentar um erro <ok>
-					<confirm security exception>
-					<send>
-
-			Máquina Gateway
-			
-				vim /sbin/firewall.sh
-					descomentar as linhas 230 até 233
-					acrescentar na linha 230 a porta 465
-					habilitar a regra de número 8 na linha 198
-					e adicionar a porta 465 nas linhas 189 e 198
-				firewall.sh
-				
-			Máquina Cliente Externo
-			
-				apt update
-				apt install thunderbird -y
-				ping mail.asf.com -c 4- precisa imprimir o ip 200.50.100.20!
-				abrir um thunderbird
-					maria
-					maria@asf.com
-					senha <default>
-				
-			Máquina Gateway
-			
-				chattr -i /etc/resolv.conf
-				vim /etc/resolv.conf
-					colocar o nameserver da google 8.8.8.8 por último
-				chattr +i /etc/resolv.conf
-				firewall.sh
-				
-			Máquina Cliente Externo
-			
-				Thunderbird
-					maria
-					maria@asf.com
-					senha <default>
-					<continue>
-					Configure manually
-						Incoming Server
-							Connection security: SSL/TLS
-						Outgoing server
-							Connection security: SSL/TLS
-					<done>
-					<Confirm Security Exception>
+					cat /etc/hosts |mail -s teste analista@asf.com
 					
-			https://apache.org/index.html#projects-list
-			https://projects.apache.org/project.html?httpd-http_server
-
-			Máquina Intranet
-			
-				apt install apache2 -y
-				cd /etc/apache2
+				Máquina Cliente Interno
 				
-				modulos
-					ls -l mods-available/
-					a2enmod rewrite - habilitar um módulo
-					a2dismod rewrite - desabila um módulo
-				sites
-					ls -l sites-available/
-					a2ensite 000-default - habilitar um site
-					a2dissite 000-default - desabilitar um site 
-				configuração
-					ls -l conf-available/
-					a2disconf charset - remove o link, o arquivo de configuração precisa estar dentro de conf-available!
-					a2enconf charset - adiciona o link, o arquivo de configuração precisa estar dentro de conf-available!
+					Thunderbird
+						Write
+							to analista@asf.com
+							Subject teste novo
+							Body teste Thunderbird
+						<send>
+						irá apresentar um erro <ok>
+						<confirm security exception>
+						<send>
+
+				Máquina Gateway
+				
+					vim /sbin/firewall.sh
+						descomentar as linhas 230 até 233
+						acrescentar na linha 230 a porta 465
+						habilitar a regra de número 8 na linha 198
+						e adicionar a porta 465 nas linhas 189 e 198
+					firewall.sh
 					
-				cd /var/log/apache2/ - logs de acessos, erros do servidor
-				cd /var/www/html/ - armazenar as páginas
+				Máquina Cliente Externo
 				
-				ping express.asf.com - deve responder 192.168.1.10
-
-			Máquina Cliente Interno
-				
-				firefox
-					express.asf.com - documentação inicial do servidor no endereço
-
-			Máquina Intranet
-
-				express.asf.com  -> /var/www/html - atualmente, está apresentando a raiz de html
-				express.asf.com  -> /srv/www/express - irá apontar para a aplicação específica
-
-				cd /etc/apache2
-				vim apache2.conf
-					alterar as linhas 176 até 180 para remover os comentários, e adicionar o www/
-					<Directory /srv/www/>
-						Options Indexes FollowSymLinks
-						AllowOverride None
-						Require all granted
-					</Directory>
-									
-				systemctl restart apache2 
-				apachectl restart	 - outra forma de restartar o apache
-				apachectl configtest - visualizar se as configurações estão de acordo
-				
-				apt install php7.3 php-pear php7.3-curl php7.3-gd php7.3-intl php7.3-xmlrpc php7.3-mysql -y
-				
-				a2enmod php7.3 - habilitar o módulo php para o apache
-				php -v - verificar se está instalado na máquina
-
-				systemctl restart apache2
-				echo "<?php   phpinfo(); ?>"   >  /var/www/html/info.php
-
-				cd /srv/www
-				unzip /root/linuxforce/intranet/express.zip
-				chown www-data:www-data -R /srv/www/express
-				
-				cd /etc/apache2/sites-available/
-				vim express.conf - criando o arquivo
-					<VirtualHost express.asf.com:80>
-						DocumentRoot /srv/www/express
-						ServerName express.asf.com
-						ServerAdmin analista@asf.com
-						ErrorLog /var/log/apache2/express-error.log
-						CustomLog /var/log/apache2/express-access.log common
-					</VirtualHost>
-				apachectl configtest
-				a2ensite express
-				systemctl reload apache2
-				
-			Máquina Cliente Interno
-			
-				firefox
-					express.asf.com - deve apresentar a página da Allsafe Express
+					apt update
+					apt install thunderbird -y
+					ping mail.asf.com -c 4- precisa imprimir o ip 200.50.100.20!
+					abrir um thunderbird
+						maria
+						maria@asf.com
+						senha <default>
 					
-			Máquina Intranet
-			
-				mkdir -pv /etc/ssl/express
-				cd /etc/ssl/express
+				Máquina Gateway
 				
-				1 - chave (.key)
-					openssl genrsa -out express.key 2048
-				2 - arquivos requisição (.csr)
-					openssl req -new -key express.key -out express.csr
-				3 - assinatura certificado (.crt)
-					openssl x509 -req -days 365 -in express.csr -signkey express.key -out express.crt
-				
-				a2enmod ssl - habilitar o módulo SSL
-				a2enmod rewrite
-				
-				cd /etc/apache2/sites-available/
-				vim express.conf
-					<VirtualHost express.asf.com:443> - mudar somente a porta de 80 para 443
-						...
-						SSLEngine	on
-						SSLCertificateFile	    /etc/ssl/express/express.crt
-						SSLCertificateKeyFile	/etc/ssl/express/express.key
-					</VirtualHost>
+					chattr -i /etc/resolv.conf
+					vim /etc/resolv.conf
+						colocar o nameserver da google 8.8.8.8 por último
+					chattr +i /etc/resolv.conf
+					firewall.sh
 					
-					<VirtualHost express.asf.com:80>
-						RewriteEngine On
-						Options FollowSymLinks
-						RewriteCond %{SERVER_PORT} 80
-						RewriteRule ^(.*)$ https://express.asf.com/	[R,L]
-					</VirtualHost>
-				:wq
-				apachectl configtest
-				systemctl restart apache2
+				Máquina Cliente Externo
 				
+					Thunderbird
+						maria
+						maria@asf.com
+						senha <default>
+						<continue>
+						Configure manually
+							Incoming Server
+								Connection security: SSL/TLS
+							Outgoing server
+								Connection security: SSL/TLS
+						<done>
+						<Confirm Security Exception>
+						
+				https://apache.org/index.html#projects-list
+				https://projects.apache.org/project.html?httpd-http_server
+
+				Máquina Intranet
+				
+					apt install apache2 -y
+					cd /etc/apache2
+					
+					modulos
+						ls -l mods-available/
+						a2enmod rewrite - habilitar um módulo
+						a2dismod rewrite - desabila um módulo
+					sites
+						ls -l sites-available/
+						a2ensite 000-default - habilitar um site
+						a2dissite 000-default - desabilitar um site 
+					configuração
+						ls -l conf-available/
+						a2disconf charset - remove o link, o arquivo de configuração precisa estar dentro de conf-available!
+						a2enconf charset - adiciona o link, o arquivo de configuração precisa estar dentro de conf-available!
+						
+					cd /var/log/apache2/ - logs de acessos, erros do servidor
+					cd /var/www/html/ - armazenar as páginas
+					
+					ping express.asf.com - deve responder 192.168.1.10
+
+				Máquina Cliente Interno
+					
+					firefox
+						express.asf.com - documentação inicial do servidor no endereço
+
+				Máquina Intranet
+
+					express.asf.com  -> /var/www/html - atualmente, está apresentando a raiz de html
+					express.asf.com  -> /srv/www/express - irá apontar para a aplicação específica
+
+					cd /etc/apache2
+					vim apache2.conf
+						alterar as linhas 176 até 180 para remover os comentários, e adicionar o www/
+						<Directory /srv/www/>
+							Options Indexes FollowSymLinks
+							AllowOverride None
+							Require all granted
+						</Directory>
+										
+					systemctl restart apache2 
+					apachectl restart	 - outra forma de restartar o apache
+					apachectl configtest - visualizar se as configurações estão de acordo
+					
+					apt install php7.3 php-pear php7.3-curl php7.3-gd php7.3-intl php7.3-xmlrpc php7.3-mysql -y
+					
+					a2enmod php7.3 - habilitar o módulo php para o apache
+					php -v - verificar se está instalado na máquina
+
+					systemctl restart apache2
+					echo "<?php   phpinfo(); ?>"   >  /var/www/html/info.php
+
+					cd /srv/www
+					unzip /root/linuxforce/intranet/express.zip
+					chown www-data:www-data -R /srv/www/express
+					
+					cd /etc/apache2/sites-available/
+					vim express.conf - criando o arquivo
+						<VirtualHost express.asf.com:80>
+							DocumentRoot /srv/www/express
+							ServerName express.asf.com
+							ServerAdmin analista@asf.com
+							ErrorLog /var/log/apache2/express-error.log
+							CustomLog /var/log/apache2/express-access.log common
+						</VirtualHost>
+					apachectl configtest
+					a2ensite express
+					systemctl reload apache2
+					
+				Máquina Cliente Interno
+				
+					firefox
+						express.asf.com - deve apresentar a página da Allsafe Express
+						
+				Máquina Intranet
+				
+					mkdir -pv /etc/ssl/express
+					cd /etc/ssl/express
+					
+					1 - chave (.key)
+						openssl genrsa -out express.key 2048
+					2 - arquivos requisição (.csr)
+						openssl req -new -key express.key -out express.csr
+					3 - assinatura certificado (.crt)
+						openssl x509 -req -days 365 -in express.csr -signkey express.key -out express.crt
+					
+					a2enmod ssl - habilitar o módulo SSL
+					a2enmod rewrite
+					
+					cd /etc/apache2/sites-available/
+					vim express.conf
+						<VirtualHost express.asf.com:443> - mudar somente a porta de 80 para 443
+							...
+							SSLEngine	on
+							SSLCertificateFile	    /etc/ssl/express/express.crt
+							SSLCertificateKeyFile	/etc/ssl/express/express.key
+						</VirtualHost>
+						
+						<VirtualHost express.asf.com:80>
+							RewriteEngine On
+							Options FollowSymLinks
+							RewriteCond %{SERVER_PORT} 80
+							RewriteRule ^(.*)$ https://express.asf.com/	[R,L]
+						</VirtualHost>
+					:wq
+					apachectl configtest
+					systemctl restart apache2
+					
 				Máquina Cliente Interno
 				
 					firefox
@@ -859,645 +853,645 @@
 						
 					systemctl restart nginx
 
-				Máquina Cliente Interno
+			Máquina Cliente Interno
 
-					http://www.asf.com
-					https://www.asf.com
-					
-				Máquina Storage
-
-					vim nginx.conf	
-					
-						server { ... default
-						
-							location / {
-								rewrite ^(.*)$ https://www.asf.com/ permanent;
-
-					systemctl restart nginx
-					
-				Máquina Cliente Interno
-
-					http://www.asf.com -> https://www.asf.com
-					
-				Máquina Intranet
-
-					cd /etc/pam.d/
-					cd /lib/x86_64-linux-gnu/security/
-					ls -l pam_* - arquivos de módulos
-					cd /etc/pam.d/
-					vim login
-						1 - Gerenciador
-							auth
-							account
-							password
-							session
-						2 - Controle
-							require
-							requisite
-							sufficient
-							optional
-						3 - Modulo
-						4 - Parametros
-						na linha 36
-							auth	requisite pam_nologin.so
-								pam_nologin.so - desative temporariamente o login dos usuários na máquina
-					touch /etc/nologin - ao criar um arquivo deste, realiza o bloqueio para todos os usuários com exceção do root
-					rm /etc/nologin - permite novamente os acessos
-					vim login
-						account requisite pam_time.so  - remover o comentário da linha 78
-					:wq
-					vim sshd
-						account required pam_time.so - adicionar na linha 8
-					:wq
-					cd /etc/security/
-					vim time.conf
-						adicionar ao final do arquivo
-						login;*;analista;Al0800-1800 - todos os dias Al
-						sshd;*;analista;Wk1800-2359 - somente aos finais de semana Wk
-					:wq
-					adduser teste
-					su - teste
-					groupadd admins
-					gpasswd -a analista admins
-					cd /etc/pam.d/
-					vim su
-						auth required pam_wheel.so group=admins - descomentar a linha 15 e adicionar o sufixo group=admins
-					:wq
-					ulimit -a - limites do usuário logado atualmente
-						ulimit -u 500 - seta através de linha de comando / temporário
-					cd /etc/pam.d/
-					grep --color -i pam_limits -r /etc/pam.d - quais arquivos que tem a configuração de limites
-					cd /etc/security/
-					vim limits.conf
-						@admins		hard	maxlogins	3
-						@admins		hard	nproc		20
-					:wq
-					who
-					killall -9 vim
-					
-					pam_tally2.so - 
-
-				Máquina Datacenter
+				http://www.asf.com
+				https://www.asf.com
 				
-					ssh -p 52020 analista@192.168.1.20 - para conectar através da Máquina Cliente Interno na Máquina Datacenter
+			Máquina Storage
+
+				vim nginx.conf	
+				
+					server { ... default
 					
-					apt install slapd ldap-utils -y
+						location / {
+							rewrite ^(.*)$ https://www.asf.com/ permanent;
+
+				systemctl restart nginx
+				
+			Máquina Cliente Interno
+
+				http://www.asf.com -> https://www.asf.com
+				
+			Máquina Intranet
+
+				cd /etc/pam.d/
+				cd /lib/x86_64-linux-gnu/security/
+				ls -l pam_* - arquivos de módulos
+				cd /etc/pam.d/
+				vim login
+					1 - Gerenciador
+						auth
+						account
+						password
+						session
+					2 - Controle
+						require
+						requisite
+						sufficient
+						optional
+					3 - Modulo
+					4 - Parametros
+					na linha 36
+						auth	requisite pam_nologin.so
+							pam_nologin.so - desative temporariamente o login dos usuários na máquina
+				touch /etc/nologin - ao criar um arquivo deste, realiza o bloqueio para todos os usuários com exceção do root
+				rm /etc/nologin - permite novamente os acessos
+				vim login
+					account requisite pam_time.so  - remover o comentário da linha 78
+				:wq
+				vim sshd
+					account required pam_time.so - adicionar na linha 8
+				:wq
+				cd /etc/security/
+				vim time.conf
+					adicionar ao final do arquivo
+					login;*;analista;Al0800-1800 - todos os dias Al
+					sshd;*;analista;Wk1800-2359 - somente aos finais de semana Wk
+				:wq
+				adduser teste
+				su - teste
+				groupadd admins
+				gpasswd -a analista admins
+				cd /etc/pam.d/
+				vim su
+					auth required pam_wheel.so group=admins - descomentar a linha 15 e adicionar o sufixo group=admins
+				:wq
+				ulimit -a - limites do usuário logado atualmente
+					ulimit -u 500 - seta através de linha de comando / temporário
+				cd /etc/pam.d/
+				grep --color -i pam_limits -r /etc/pam.d - quais arquivos que tem a configuração de limites
+				cd /etc/security/
+				vim limits.conf
+					@admins		hard	maxlogins	3
+					@admins		hard	nproc		20
+				:wq
+				who
+				killall -9 vim
+				
+				pam_tally2.so - 
+
+			Máquina Datacenter
+			
+				ssh -p 52020 analista@192.168.1.20 - para conectar através da Máquina Cliente Interno na Máquina Datacenter
+				
+				apt install slapd ldap-utils -y
+				<senha default> 2x
+				cd /etc/ldap/
+				cd schema/ - diretório default dos schemas
+				cd ..
+				cd slapd.d/
+				ls -l /var/lib/ldap
+				cd .. 
+				cp /usr/share/slapd/slapd.conf	/etc/ldap/
+				vim slapd.conf
+					linha 22, incluir as seguintes informações
+					logfile		/var/log/slapd.log
+					loglevel	filter stats
+					
+					linha 26, remover o @BACKEND@ e incluir bdb
+					moduleload	back_bdb
+					
+					linha 39 alterar o @BACKEND@ para bdb
+					backend		bdb
+					
+					linha 51 alterar o @BACKEND@ para bdb
+					database	bdb
+					
+					suffix	"dc=asf,dc=com"
+					
+					descomentar a linha 58
+					rootdn		"cn=admin,dc=asf,dc=com"
+				:wq
+				
+				slappasswd >> slapd.conf
+				<senha default> 2x
+				
+				vim slapd.conf
+					remover o conteúdo adicionado na última linha <dd>
+					adicionar logo após a linha 58
+					rootpw		{SSHA} ... <p>
+				
+					linha 101, substituir o by dn="@ADMIN@" por
+					by dn="cn=admin,dc=asf,dc=com" write
+					
+					linha 120, substituir o by dn="@ADMIN@" por
+					by dn="cn=admin,dc=asf,dc=com" write
+				:wq
+				
+				systemctl enable slapd
+				systemctl restart slapd
+				slapcat - lê a base de dados, e apresenta algumas informações
+				
+				mv slapd.d /var/backups/
+				mkdir slapd.d
+				chown openldap:openldap -R /var/lib/ldap
+				chown openldap:openldap -R /etc/ldap/slapd.d/
+				
+				slaptest -f slapd.conf -F slapd.d
+
+				systemctl restart slapd
+
+				chown openldap:openldap -R /var/lib/ldap
+				chown openldap:openldap -R /etc/ldap/slapd.d/
+
+				slaptest -f slapd.conf -F slapd.d - tem de passar com sucesso no teste
+				slapcat - vazio
+				systemctl status slapd - ativo e rodando
+				
+				groupadd -g 5000 g_ti
+				groupadd -g 5001 g_suporte
+				groupadd -g 5002 g_tech
+				
+				useradd -u 5000 -g g_ti -G g_suporte,g_tech -m -k /etc/skel/ kamila
+				useradd -u 5001 -g g_ti -G g_suporte -m -k /etc/skel/ rafaela
+				useradd -u 5002 -g g_ti -G g_tech -m -k /etc/skel/ sophia
+				
+				id kamila
+				id rafaela
+				id sophia
+				
+				passwd kamila
 					<senha default> 2x
-					cd /etc/ldap/
-					cd schema/ - diretório default dos schemas
-					cd ..
-					cd slapd.d/
-					ls -l /var/lib/ldap
-					cd .. 
-					cp /usr/share/slapd/slapd.conf	/etc/ldap/
-					vim slapd.conf
-						linha 22, incluir as seguintes informações
-						logfile		/var/log/slapd.log
-						loglevel	filter stats
-						
-						linha 26, remover o @BACKEND@ e incluir bdb
-						moduleload	back_bdb
-						
-						linha 39 alterar o @BACKEND@ para bdb
-						backend		bdb
-						
-						linha 51 alterar o @BACKEND@ para bdb
-						database	bdb
-						
-						suffix	"dc=asf,dc=com"
-						
-						descomentar a linha 58
-						rootdn		"cn=admin,dc=asf,dc=com"
-					:wq
-					
-					slappasswd >> slapd.conf
+				passwd rafaela
+					<senha default> 2x
+				passwd sophia
 					<senha default> 2x
 					
-					vim slapd.conf
-						remover o conteúdo adicionado na última linha <dd>
-						adicionar logo após a linha 58
-						rootpw		{SSHA} ... <p>
-					
-						linha 101, substituir o by dn="@ADMIN@" por
-						by dn="cn=admin,dc=asf,dc=com" write
-						
-						linha 120, substituir o by dn="@ADMIN@" por
-						by dn="cn=admin,dc=asf,dc=com" write
-					:wq
-					
-					systemctl enable slapd
-					systemctl restart slapd
-					slapcat - lê a base de dados, e apresenta algumas informações
-					
-					mv slapd.d /var/backups/
-					mkdir slapd.d
-					chown openldap:openldap -R /var/lib/ldap
-					chown openldap:openldap -R /etc/ldap/slapd.d/
-					
-					slaptest -f slapd.conf -F slapd.d
-
-					systemctl restart slapd
-
-					chown openldap:openldap -R /var/lib/ldap
-					chown openldap:openldap -R /etc/ldap/slapd.d/
-
-					slaptest -f slapd.conf -F slapd.d - tem de passar com sucesso no teste
-					slapcat - vazio
-					systemctl status slapd - ativo e rodando
-					
-					groupadd -g 5000 g_ti
-					groupadd -g 5001 g_suporte
-					groupadd -g 5002 g_tech
-					
-					useradd -u 5000 -g g_ti -G g_suporte,g_tech -m -k /etc/skel/ kamila
-					useradd -u 5001 -g g_ti -G g_suporte -m -k /etc/skel/ rafaela
-					useradd -u 5002 -g g_ti -G g_tech -m -k /etc/skel/ sophia
-					
-					id kamila
-					id rafaela
-					id sophia
-					
-					passwd kamila
-						<senha default> 2x
-					passwd rafaela
-						<senha default> 2x
-					passwd sophia
-						<senha default> 2x
-						
-					apt install migrationtools -y
-					
-					cd /usr/share/migrationtools/
-						migrate_common.ph - parâmetros de configuração
-						migrate_base.pl
-						migrate_passwd.pl
-						migrate_group.pl
-
-					vim migrate_common.ph
-						alterar a linha 71 de "padl.com" para "asf.com"
-						alterar linha 74 para de "dc=padl..." para "dc=asf..."
-						remover os comentários das linhas 96 e 97 e alterar o id dos usuários
-							$IGNORE_UID_BELOW = 5000;
-							$IGNORE_GID_BELOW = 5000;
-					:wq
-					
-					vim migrate_base.pl
-						alterar a linha 39
-							required /usr/share/migrationtools/migrate_common.ph";
-					:wq
-					
-					vim migrate_passwd.pl
-						alterar a linha 41
-							required /usr/share/migrationtools/migrate_common.ph";
-					:wq
-					
-					vim migrate_group.pl
-						alterar a linha 39
-							required /usr/share/migrationtools/migrate_common.ph";
-					:wq
-					
-					./migrate_base.pl > /etc/ldap/base.ldif
-					./migrate_group.pl /etc/group /etc/ldap/groups.ldif
-					./migrate_passwd.pl /etc/passwd  /etc/ldap/users.ldif
-					
-					cd /etc/ldap
-					ls -l *.ldif - apresentar 3 arquivos
-					
-					ldapadd --help
-						-x - autenticação simples
-						-D - a conta do usuário administrador
-						-f - qual o arquivo que será lido na importação
-						-W - chamar o prompt para digitação da senha
-
-					slapcat
-
-					ldapadd -x -D cn=admin,dc=asf,dc=com -f base.ldif -W
-					ldapadd -x -D cn=admin,dc=asf,dc=com -f groups.ldif -W
-					ldapadd -x -D cn=admin,dc=asf,dc=com -f users.ldif -W
-
-					ldapsearch -x -b dc=asf,dc=com
-					ldapsearch -x -b dc=asf,dc=com uid=sophia
-					ldapsearch -x -b dc=asf,dc=com loginShell='/bin/sh' uid=sophia
-					
-				Máquina Cliente Interno
-
-					apt install ldap-utils -y
-					ldapsearch -h 192.168.1.20 -x -b dc=sf,dc=com uid=rafaela
-					
-					vim /etc/ldap/ldap.conf
-						linha 8, remover o comentário
-							BASE	dc=asf,dc=com
-							URI ldap://192.168.1.20
-					:wq
-
-					ldapsearch -x uid=rafaela
-
-				Máquina Datacenter
+				apt install migrationtools -y
 				
-					systemctl stop slapd
-					slapcat -l /var/backups/backup_ldap.ldif
-					systemctl start slapd
-					
-					ldapdelete -x -D cn=admin,dc=asf,dc=com -r dc=asf,dc=com -W
-					<default>
+				cd /usr/share/migrationtools/
+					migrate_common.ph - parâmetros de configuração
+					migrate_base.pl
+					migrate_passwd.pl
+					migrate_group.pl
 
-					systemctl stop slapd
-					slapadd -cl /var/backups/backup_ldap.ldif
-					systemctl start slapd
-
-					slapcat - para verificar se foi restaurado
-					
-					vim shell.ldif
-						dn: uid=kamila,ou=People,dc=asf,dc=com
-						changetype: modify
-						replace: loginShell
-						loginShell: /bin/bash
-						
-						dn: uid=sophia,ou=People,dc=asf,dc=com
-						changetype: modify
-						replace: loginShell
-						loginShell: /bin/bash
-						
-						dn: uid=rafaela,ou=People,dc=asf,dc=com
-						changetype: modify
-						replace: loginShell
-						loginShell: /bin/bash
-					:wq
-					
-					ldapmodify -x -D cn=admin,dc=asf,dc=com -f shell.ldif -W
-
-				Máquina Gateway
+				vim migrate_common.ph
+					alterar a linha 71 de "padl.com" para "asf.com"
+					alterar linha 74 para de "dc=padl..." para "dc=asf..."
+					remover os comentários das linhas 96 e 97 e alterar o id dos usuários
+						$IGNORE_UID_BELOW = 5000;
+						$IGNORE_GID_BELOW = 5000;
+				:wq
 				
-					yum search ldap
-					
-					yum install openldap-clients -y
-					
-					vim /etc/openldp/ldap.conf
-						descomentar as linhas 8 e 9
-						BASE dc=asf,dc=com
+				vim migrate_base.pl
+					alterar a linha 39
+						required /usr/share/migrationtools/migrate_common.ph";
+				:wq
+				
+				vim migrate_passwd.pl
+					alterar a linha 41
+						required /usr/share/migrationtools/migrate_common.ph";
+				:wq
+				
+				vim migrate_group.pl
+					alterar a linha 39
+						required /usr/share/migrationtools/migrate_common.ph";
+				:wq
+				
+				./migrate_base.pl > /etc/ldap/base.ldif
+				./migrate_group.pl /etc/group /etc/ldap/groups.ldif
+				./migrate_passwd.pl /etc/passwd  /etc/ldap/users.ldif
+				
+				cd /etc/ldap
+				ls -l *.ldif - apresentar 3 arquivos
+				
+				ldapadd --help
+					-x - autenticação simples
+					-D - a conta do usuário administrador
+					-f - qual o arquivo que será lido na importação
+					-W - chamar o prompt para digitação da senha
+
+				slapcat
+
+				ldapadd -x -D cn=admin,dc=asf,dc=com -f base.ldif -W
+				ldapadd -x -D cn=admin,dc=asf,dc=com -f groups.ldif -W
+				ldapadd -x -D cn=admin,dc=asf,dc=com -f users.ldif -W
+
+				ldapsearch -x -b dc=asf,dc=com
+				ldapsearch -x -b dc=asf,dc=com uid=sophia
+				ldapsearch -x -b dc=asf,dc=com loginShell='/bin/sh' uid=sophia
+				
+			Máquina Cliente Interno
+
+				apt install ldap-utils -y
+				ldapsearch -h 192.168.1.20 -x -b dc=sf,dc=com uid=rafaela
+				
+				vim /etc/ldap/ldap.conf
+					linha 8, remover o comentário
+						BASE	dc=asf,dc=com
 						URI ldap://192.168.1.20
-					:wq
+				:wq
 
-					ldapsearch -x uid=rafaela - vai ficar pensando, e não irá apresentar o retorno
+				ldapsearch -x uid=rafaela
 
-					vim /sbin/firewall.sh
-						descomentar a regra de número #7 no output
-							iptables -A OUTPUT -p tcp -o enp0s8 -s $GTW -d $DTC --dport 389 -j ACCEPT
-					:wq
-
-					yum install squid -y
-
-					cd /etc/squid/
-					vim squid.conf
-					ls -l /usr/share/doc/squid-3.5.20/
-					vim /usr/share/doc/squid-3.5.20/squid.conf.documented
+			Máquina Datacenter
+			
+				systemctl stop slapd
+				slapcat -l /var/backups/backup_ldap.ldif
+				systemctl start slapd
 				
-					acl - listas de controles de acesso
-						acl    nomedaacl    tipoacl     valores
-							Principais tipos de acl's
-								src = ip de origem
-								dst = ip de destino
-								srcdomain = dominio de origem
-								dstdomain = dominio de destino
-									.globo.com
-									.terra.com.br
-									.asf.com
-								srcdom_regex -i 
-								dstdom_regex -i
-								time = Controle por horario
-								url_regex -i  ^http.*.exe$
-								port = Controle por porta
-								proxy_auth =  Controla o login de usuários autenticados.
-								proxy_auth_regex
-								arp = endereço mac
+				ldapdelete -x -D cn=admin,dc=asf,dc=com -r dc=asf,dc=com -W
+				<default>
 
-					vim squid.conf
-						na primeira linha do arquivo, incluir o nome da máquina proxy.asf.com
-							visible_hostname proxy.asf.com
+				systemctl stop slapd
+				slapadd -cl /var/backups/backup_ldap.ldif
+				systemctl start slapd
 
-						remover o comentário da linha 62   (em megabytes)
-							cache_dir ufs /var/spool/squid 500 16 256
-					:wq
+				slapcat - para verificar se foi restaurado
+				
+				vim shell.ldif
+					dn: uid=kamila,ou=People,dc=asf,dc=com
+					changetype: modify
+					replace: loginShell
+					loginShell: /bin/bash
 					
-					squid -z
+					dn: uid=sophia,ou=People,dc=asf,dc=com
+					changetype: modify
+					replace: loginShell
+					loginShell: /bin/bash
+					
+					dn: uid=rafaela,ou=People,dc=asf,dc=com
+					changetype: modify
+					replace: loginShell
+					loginShell: /bin/bash
+				:wq
+				
+				ldapmodify -x -D cn=admin,dc=asf,dc=com -f shell.ldif -W
+
+			Máquina Gateway
+			
+				yum search ldap
+				
+				yum install openldap-clients -y
+				
+				vim /etc/openldp/ldap.conf
+					descomentar as linhas 8 e 9
+					BASE dc=asf,dc=com
+					URI ldap://192.168.1.20
+				:wq
+
+				ldapsearch -x uid=rafaela - vai ficar pensando, e não irá apresentar o retorno
+
+				vim /sbin/firewall.sh
+					descomentar a regra de número #7 no output
+						iptables -A OUTPUT -p tcp -o enp0s8 -s $GTW -d $DTC --dport 389 -j ACCEPT
+				:wq
+
+				yum install squid -y
+
+				cd /etc/squid/
+				vim squid.conf
+				ls -l /usr/share/doc/squid-3.5.20/
+				vim /usr/share/doc/squid-3.5.20/squid.conf.documented
+			
+				acl - listas de controles de acesso
+					acl    nomedaacl    tipoacl     valores
+						Principais tipos de acl's
+							src = ip de origem
+							dst = ip de destino
+							srcdomain = dominio de origem
+							dstdomain = dominio de destino
+								.globo.com
+								.terra.com.br
+								.asf.com
+							srcdom_regex -i 
+							dstdom_regex -i
+							time = Controle por horario
+							url_regex -i  ^http.*.exe$
+							port = Controle por porta
+							proxy_auth =  Controla o login de usuários autenticados.
+							proxy_auth_regex
+							arp = endereço mac
+
+				vim squid.conf
+					na primeira linha do arquivo, incluir o nome da máquina proxy.asf.com
+						visible_hostname proxy.asf.com
+
+					remover o comentário da linha 62   (em megabytes)
+						cache_dir ufs /var/spool/squid 500 16 256
+				:wq
+				
+				squid -z
+				systemctl restart squid
+				systemctl enable squid
+				tail -f /var/log/squid/access.log - o log deve estar vazio, afinal, não tem ninguém utilizando ainda!
+				
+				vim /sbin/firewall.sh
+					alterar a linha 117 (Input / #7) para remover o comentário #
+				:wq
+				firewall.sh
+				ss -ntpl
+					irá apresentar a execução do serviço na porta 3128!
+
+				tail -f /var/log/squid/access.log
+
+			Máquina Cliente Interno
+			
+				firefox
+					preferências
+						proxy
+							configuração manual
+								192.168.1.1 porta 3128
+								check em "Usar este servidor de proxy para todos os protocolos
+
+			Máquina Gateway
+			
+				vim squid.conf
+					incluir na primeira linha, antes de visible_hostname
+						auth_param basic program /usr/lib64/squid/basic_ldap_auth -b dc=asf,dc=com -f uid=%s 192.168.1.20
+						auth_param basic children 5
+						auth_param basic realm Proxy Squid ASF
+						auth_param basic credentialsttl 2 hours
+
+						acl password proxy_auth REQUIRED
+						#acl nivel1 proxy_auth kamila
+						#acl nivel2 proxy_auth rafaela sophia
+						#acl ipblock src 192.168.1.100
+						#acl blockdomain dstdomain .uol.com.br .terra.com.br
+						#acl hrnoite time MTWHF 18:00-23:00
+							acl aclname time [day-abbrevs] [h1:m1-h2:m2]
+							  # [fast]
+							  #  day-abbrevs:
+							  #	S - Sunday
+							  #	M - Monday
+							  #	T - Tuesday
+							  #	W - Wednesday
+							  #	H - Thursday
+							  #	F - Friday
+							  #	A - Saturday
+							  #  h1:m1 must be less than h2:m2
+
+
+						#http_access allow hrnoite
+						#http_access deny blockdomain
+						#http_access deny ipblock
+						#http_access allow nivel2
+						#http_access deny nivel1
+						http_access deny !password
+					:wq
 					systemctl restart squid
-					systemctl enable squid
-					tail -f /var/log/squid/access.log - o log deve estar vazio, afinal, não tem ninguém utilizando ainda!
-					
-					vim /sbin/firewall.sh
-						alterar a linha 117 (Input / #7) para remover o comentário #
+					squid -k reconfigure - validação das configurações e restart
+
+					yum install squidGuard -y
+					cd /etc/squid/
+					mv squidGuard.conf /var/
+					vim squidGuard.conf
+						dbhome /var/lib/squidGuard/db
+						logdir /var/log/squidGuard
+
+						dest porn {
+								domainlist blacklists/porn/domains
+								urllist blacklists/porn/urls
+						}
+
+						dest proxy {
+								domainlist blacklists/proxy/domains
+								urllist blacklists/proxy/urls
+						}
+
+						acl {
+								default {
+										pass !porn !proxy all
+										redirect http://127.0.0.1/
+								}
+						}
 					:wq
-					firewall.sh
-					ss -ntpl
-						irá apresentar a execução do serviço na porta 3128!
-
-					tail -f /var/log/squid/access.log
-
-				Máquina Cliente Interno
-				
-					firefox
-						preferências
-							proxy
-								configuração manual
-									192.168.1.1 porta 3128
-									check em "Usar este servidor de proxy para todos os protocolos
-
-				Máquina Gateway
-				
-					vim squid.conf
-						incluir na primeira linha, antes de visible_hostname
-							auth_param basic program /usr/lib64/squid/basic_ldap_auth -b dc=asf,dc=com -f uid=%s 192.168.1.20
-							auth_param basic children 5
-							auth_param basic realm Proxy Squid ASF
-							auth_param basic credentialsttl 2 hours
-
-							acl password proxy_auth REQUIRED
-							#acl nivel1 proxy_auth kamila
-							#acl nivel2 proxy_auth rafaela sophia
-							#acl ipblock src 192.168.1.100
-							#acl blockdomain dstdomain .uol.com.br .terra.com.br
-							#acl hrnoite time MTWHF 18:00-23:00
-								acl aclname time [day-abbrevs] [h1:m1-h2:m2]
-								  # [fast]
-								  #  day-abbrevs:
-								  #	S - Sunday
-								  #	M - Monday
-								  #	T - Tuesday
-								  #	W - Wednesday
-								  #	H - Thursday
-								  #	F - Friday
-								  #	A - Saturday
-								  #  h1:m1 must be less than h2:m2
-
-
-							#http_access allow hrnoite
-							#http_access deny blockdomain
-							#http_access deny ipblock
-							#http_access allow nivel2
-							#http_access deny nivel1
-							http_access deny !password
-						:wq
-						systemctl restart squid
-						squid -k reconfigure - validação das configurações e restart
-
-						yum install squidGuard -y
-						cd /etc/squid/
-						mv squidGuard.conf /var/
-						vim squidGuard.conf
-							dbhome /var/lib/squidGuard/db
-							logdir /var/log/squidGuard
-
-							dest porn {
-									domainlist blacklists/porn/domains
-									urllist blacklists/porn/urls
-							}
-
-							dest proxy {
-									domainlist blacklists/proxy/domains
-									urllist blacklists/proxy/urls
-							}
-
-							acl {
-									default {
-											pass !porn !proxy all
-											redirect http://127.0.0.1/
-									}
-							}
-						:wq
-						
-						http://www.squidguard.org/ - arquivos de blacklists
-						
-						mkdir -pv /var/lib/squidGuard/db
-						tar -xvzf /root/linuxforce/gateway/blacklist.tgz  -C /var/lib/squidGuard/db/
-						cd /var/lib/squidGuard/db/
-						cd /blacklist/porn
-						vim domains
-							G - para ir ao final do arquivo
-							incluir 
-								xvideos.com
-								uol.com.br - fins de testes
-						:wq
-						
-						squidGuard -d -C all
-						chown squid:squid -R /var/lib/squidGuard/db/
-						
-						vim /etc/squid/squid.conf
-							adicionar após a linha http_access deny !password
-								redirect_program /bin/squidGuard
-						:wq
-						
-						systemctl restart squid
-						getenforce
-							precisa estar disable
-						
-					Máquina Cliente Interno
 					
-						cat /etc/nsswitch.conf 
-						/etc/passwd
-						/etc/group
-						getent passwd
-
-						apt install libpam-ldap libnss-ldap -y
+					http://www.squidguard.org/ - arquivos de blacklists
 					
-							libnss-ldap
+					mkdir -pv /var/lib/squidGuard/db
+					tar -xvzf /root/linuxforce/gateway/blacklist.tgz  -C /var/lib/squidGuard/db/
+					cd /var/lib/squidGuard/db/
+					cd /blacklist/porn
+					vim domains
+						G - para ir ao final do arquivo
+						incluir 
+							xvideos.com
+							uol.com.br - fins de testes
+					:wq
+					
+					squidGuard -d -C all
+					chown squid:squid -R /var/lib/squidGuard/db/
+					
+					vim /etc/squid/squid.conf
+						adicionar após a linha http_access deny !password
+							redirect_program /bin/squidGuard
+					:wq
+					
+					systemctl restart squid
+					getenforce
+						precisa estar disable
+					
+			Máquina Cliente Interno
+			
+				cat /etc/nsswitch.conf 
+				/etc/passwd
+				/etc/group
+				getent passwd
 
-								URI do servidor LDAP:
-									ldap://192.168.1.20
-								O nome específico da base de pesquisa:
-									dc=asf,dc=com
-								Versão LDAP a ser utilizada:
-									3
-								Conta LDAP para o root:
-									cn=admin,dc=asf,dc=com
-								Password da conta root do LDAP:
-									<default>
-								<Ok>
+				apt install libpam-ldap libnss-ldap -y
+			
+					libnss-ldap
 
-							libpam-ldap
+						URI do servidor LDAP:
+							ldap://192.168.1.20
+						O nome específico da base de pesquisa:
+							dc=asf,dc=com
+						Versão LDAP a ser utilizada:
+							3
+						Conta LDAP para o root:
+							cn=admin,dc=asf,dc=com
+						Password da conta root do LDAP:
+							<default>
+						<Ok>
 
-								Permitir que a conta administrativa do LDAP se comporte como o usuário root local?
-									<Sim>
-								A base de dados LDAP requer autenticação?
-									<Não>
-								Conta administrativa do LDAP:
-									cn=admin,dc=asf,dc=com
-								Senha para a conta administrativa no LDAP:
-									<default>
-							
-						vim /etc/nsswitch.conf
-							adicionar nas linhas 7, 8, 9 e 10, no final, a informação
-								ldap
-									ex.: passwd: 	files systemd ldap
-										 group: 	files systemd ldap
-										 shadow: 	files ldap
-										 gshadow:	files ldap
-						:wq
+					libpam-ldap
 
-						getent passwd - deve apresentar no final, os 3 usuários do ldap
+						Permitir que a conta administrativa do LDAP se comporte como o usuário root local?
+							<Sim>
+						A base de dados LDAP requer autenticação?
+							<Não>
+						Conta administrativa do LDAP:
+							cn=admin,dc=asf,dc=com
+						Senha para a conta administrativa no LDAP:
+							<default>
+					
+				vim /etc/nsswitch.conf
+					adicionar nas linhas 7, 8, 9 e 10, no final, a informação
+						ldap
+							ex.: passwd: 	files systemd ldap
+								 group: 	files systemd ldap
+								 shadow: 	files ldap
+								 gshadow:	files ldap
+				:wq
 
-						cd /etc/pam.d/
-						vim common-password
-							na linha 26, remover a informação
-								use_authtok
-						:wq
+				getent passwd - deve apresentar no final, os 3 usuários do ldap
 
-						vim common-session
-							adicionar ao final do arquivo
-								session optional 	pam_mkhomedir.so skel=/etc/skel umask=077
-						:wq
+				cd /etc/pam.d/
+				vim common-password
+					na linha 26, remover a informação
+						use_authtok
+				:wq
 
-						shutdown -r now
+				vim common-session
+					adicionar ao final do arquivo
+						session optional 	pam_mkhomedir.so skel=/etc/skel umask=077
+				:wq
 
-						tentar se logar com um dos usuários (kamila/rafaela/sophia) do LDAP
+				shutdown -r now
 
-							
-					Máquina Storage
+				tentar se logar com um dos usuários (kamila/rafaela/sophia) do LDAP
 
-						shutdown -h now
+					
+			Máquina Storage
 
-						Configurações
-							Armazenamento
-								repetir o procedimento abaixo 7x
-									Controladora Sata
-										Criar
-											VDI
-												Dinamicamente alocado
-													Tamanho de 10Gb
-														Escolher
-						
-						lsblk - deve apresentar os discos de [sdb] até [sdh]
+				shutdown -h now
 
-						cat /proc/mdstat - checar se existe alguma raid
-						
-						yum install mdadm -y
-						
-						man mdadm
-							-create - criar um array
-							-n - especifica qual a quantidade de dispositivos utilizados
-							-x / --spare-devices - discos reservas
-							--level - indicação do nível da raid que será implementado
-							
-						ex.: 
-							mdadm --create /dev/md0 --level=5 --raid-devices=6 /dev/sdb /dev/sdc/dev/sdd /dev/sde /dev/sdf /dev/sdg --spare-devices=1 /dev/sdh
-						
-						mdadm --detail /dev/md0 - status de criação da raid (Rebuild Status)
-						
-						cat /proc/mdstat - existe agora uma raid5 configurada na máquina
-						
-						mkfs -t ext4 /dev/md0 - formatação da raid
-						mount /dev/md0 /mnt - montagem do disco
-						cp /etc/*.conf /mnt/ - teste de cópia de arquivos para os discos
+				Configurações
+					Armazenamento
+						repetir o procedimento abaixo 7x
+							Controladora Sata
+								Criar
+									VDI
+										Dinamicamente alocado
+											Tamanho de 10Gb
+												Escolher
+				
+				lsblk - deve apresentar os discos de [sdb] até [sdh]
 
-						df -vhT
-						lsblk 
-						mdadm --detail /dev/md0 - status dos discos
+				cat /proc/mdstat - checar se existe alguma raid
+				
+				yum install mdadm -y
+				
+				man mdadm
+					-create - criar um array
+					-n - especifica qual a quantidade de dispositivos utilizados
+					-x / --spare-devices - discos reservas
+					--level - indicação do nível da raid que será implementado
+					
+				ex.: 
+					mdadm --create /dev/md0 --level=5 --raid-devices=6 /dev/sdb /dev/sdc/dev/sdd /dev/sde /dev/sdf /dev/sdg --spare-devices=1 /dev/sdh
+				
+				mdadm --detail /dev/md0 - status de criação da raid (Rebuild Status)
+				
+				cat /proc/mdstat - existe agora uma raid5 configurada na máquina
+				
+				mkfs -t ext4 /dev/md0 - formatação da raid
+				mount /dev/md0 /mnt - montagem do disco
+				cp /etc/*.conf /mnt/ - teste de cópia de arquivos para os discos
 
-						mdadm /dev/md0 --fail /dev/sdd - sinaliza que o disco sdd está com falha na raid md0
+				df -vhT
+				lsblk 
+				mdadm --detail /dev/md0 - status dos discos
 
-						mdadm /dev/md0 --remove /dev/sdd - removendo o disco 
-						mdadm /dev/md0 --add /dev/sdd - adiciona o disco
+				mdadm /dev/md0 --fail /dev/sdd - sinaliza que o disco sdd está com falha na raid md0
 
-						shutdown -r now
+				mdadm /dev/md0 --remove /dev/sdd - removendo o disco 
+				mdadm /dev/md0 --add /dev/sdd - adiciona o disco
 
-						mdadm --detail /dev/md0 - status dos discos devem parmanecer os mesmo, sendo o sdd o disco de spare
-						
-						shutdown -r now
-						
-						LVM - gerenciamento de disco lógico
-							PV - phisical volume
-							VG - volume group - agrupamento de PV's (ex. 100Gb)
-							LV - logical volume - subdivisões dentro do VG (ex. 50Gb, 30Gb e sobra 20Gb ainda no VG)
-								PE - phisical extend - as informações são espalhadas não sequencialmente
-							Formatar os LV's
-							Montar os LV's
-							
-							pvscan - volume físico
-							vgscan - grupos
-							lvscan - volumes lógicos
-							
-							pvcreate /dev/md0
-								<y>
-							pvscan
-							pvdisplay /dev/md0 - detalhes
-							vgcreate storage /dev/md0
-								vgextend - adicionar novos dispositivos em um grupo
-								vgrename storage novonome - alterar o nome do grupo (antigo,novo)
-							pvdisplay /dev/md0
-							vgscan
-							vgdisplay storage -v - detalhes do grupo de volumes (-v também qual o volume físico)
-							lvcreate -L 2G -n devel storage
-								lvcreate - criar volumes lógicos dentro do grupo
-									-L / --size - tamanho
-									-n - nome
-							vgdisplay storage
-							
-							lvcreate -L 2G -n drivers storage
-							lvcreate -L 2G -n infrastructure storage
-							lvcreate -L 2G -n lixeiras storage
-							lvcreate -L 2G -n manager storage
-							lvcreate -L 2G -n marketing storage
-							lvcreate -L 2G -n owner storage
-							lvcreate -L 2G -n profiles storage
-							lvcreate -L 2G -n public storage
-							lvcreate -L 2G -n security storage
+				shutdown -r now
 
-							lvscan  |grep storage
+				mdadm --detail /dev/md0 - status dos discos devem parmanecer os mesmo, sendo o sdd o disco de spare
+				
+				shutdown -r now
+				
+				LVM - gerenciamento de disco lógico
+					PV - phisical volume
+					VG - volume group - agrupamento de PV's (ex. 100Gb)
+					LV - logical volume - subdivisões dentro do VG (ex. 50Gb, 30Gb e sobra 20Gb ainda no VG)
+						PE - phisical extend - as informações são espalhadas não sequencialmente
+					Formatar os LV's
+					Montar os LV's
+					
+					pvscan - volume físico
+					vgscan - grupos
+					lvscan - volumes lógicos
+					
+					pvcreate /dev/md0
+						<y>
+					pvscan
+					pvdisplay /dev/md0 - detalhes
+					vgcreate storage /dev/md0
+						vgextend - adicionar novos dispositivos em um grupo
+						vgrename storage novonome - alterar o nome do grupo (antigo,novo)
+					pvdisplay /dev/md0
+					vgscan
+					vgdisplay storage -v - detalhes do grupo de volumes (-v também qual o volume físico)
+					lvcreate -L 2G -n devel storage
+						lvcreate - criar volumes lógicos dentro do grupo
+							-L / --size - tamanho
+							-n - nome
+					vgdisplay storage
+					
+					lvcreate -L 2G -n drivers storage
+					lvcreate -L 2G -n infrastructure storage
+					lvcreate -L 2G -n lixeiras storage
+					lvcreate -L 2G -n manager storage
+					lvcreate -L 2G -n marketing storage
+					lvcreate -L 2G -n owner storage
+					lvcreate -L 2G -n profiles storage
+					lvcreate -L 2G -n public storage
+					lvcreate -L 2G -n security storage
 
-							lvcreate -L 25G -n homes storage
+					lvscan  |grep storage
 
-							for i in $(ls /dev/storage/*); do   echo $i ; done
-							for i in $(ls /dev/storage/*); do   mkfs -t ext4 $i ; done
-							
-							blkid |grep storage-
-							for i in $(ls /dev/storage/); do   mkdir -pv /srv/asf/samba/$i ; done
-							
-							e2fsck -f /dev/storage/homes - força uma checagem no disco
-							resize2fs -p /dev/storage/homes 20G - redução do sistema de arquivos de 25Gb para 20Gb
-							lvreduce -L -5G /dev/storage/homes
-								<y>
-							
-							lvextend -L +3G /dev/storage/lixeiras
-							lvextend -L +3G /dev/storage/profiles
-							
-							e2fsck -f /dev/storage/lixeiras
-							e2fsck -f /dev/storage/profiles
-							
-							resize2fs /dev/storage/lixeiras
-							resize2fs /dev/storage/profiles
-							
-							for i in $(ls /dev/storage/); do echo -e "/dev/storage/$i \t\t /srv/asf/samba/$i zt ext4 \t defaults 0 0"; done
-							
-							cp /etc/fstab /var/
-							
-							for i in $(ls /dev/storage/); do echo -e "/dev/storage/$i \t\t /srv/asf/samba/$i zt ext4 \t defaults 0 0" >> /etc/fstab; done
+					lvcreate -L 25G -n homes storage
 
-							mount -a
-							df -vhT - confirmar que os discos estão montados e configurados
-							
-							yum install nfs-utils -y
-							
-							systemctl status nfs
-							systemctl enable nfs
-							systemctl restart nfs
-							
-							systemctl disable firewalld
-							showmount -e localhost - verificar se será apresentada uma lista exportada dos compartilhamentos (deve estar vazio)
-							
-							systemctl start nfs-server
-							systemctl enable nfs-server
-							systemctl status nfs-server
-							
-							for i in $(ls -d /srv/asf/samba/*); do echo -e "$i \t\t 192.168.1.40(rw,no_root_squash)" >> /etc/exports; done
-							
-							cat /etc/exports
-							
-							vim /etc/exports
-							
-							systemctl restart nfs-server
-							
-							showmount -e 192.168.1.30 - verificar se deu certo!
-							
-							chmod go+w /srv/asf/samba/*
-							
+					for i in $(ls /dev/storage/*); do   echo $i ; done
+					for i in $(ls /dev/storage/*); do   mkfs -t ext4 $i ; done
+					
+					blkid |grep storage-
+					for i in $(ls /dev/storage/); do   mkdir -pv /srv/asf/samba/$i ; done
+					
+					e2fsck -f /dev/storage/homes - força uma checagem no disco
+					resize2fs -p /dev/storage/homes 20G - redução do sistema de arquivos de 25Gb para 20Gb
+					lvreduce -L -5G /dev/storage/homes
+						<y>
+					
+					lvextend -L +3G /dev/storage/lixeiras
+					lvextend -L +3G /dev/storage/profiles
+					
+					e2fsck -f /dev/storage/lixeiras
+					e2fsck -f /dev/storage/profiles
+					
+					resize2fs /dev/storage/lixeiras
+					resize2fs /dev/storage/profiles
+					
+					for i in $(ls /dev/storage/); do echo -e "/dev/storage/$i \t\t /srv/asf/samba/$i zt ext4 \t defaults 0 0"; done
+					
+					cp /etc/fstab /var/
+					
+					for i in $(ls /dev/storage/); do echo -e "/dev/storage/$i \t\t /srv/asf/samba/$i zt ext4 \t defaults 0 0" >> /etc/fstab; done
+
+					mount -a
+					df -vhT - confirmar que os discos estão montados e configurados
+					
+					yum install nfs-utils -y
+					
+					systemctl status nfs
+					systemctl enable nfs
+					systemctl restart nfs
+					
+					systemctl disable firewalld
+					showmount -e localhost - verificar se será apresentada uma lista exportada dos compartilhamentos (deve estar vazio)
+					
+					systemctl start nfs-server
+					systemctl enable nfs-server
+					systemctl status nfs-server
+					
+					for i in $(ls -d /srv/asf/samba/*); do echo -e "$i \t\t 192.168.1.40(rw,no_root_squash)" >> /etc/exports; done
+					
+					cat /etc/exports
+					
+					vim /etc/exports
+					
+					systemctl restart nfs-server
+					
+					showmount -e 192.168.1.30 - verificar se deu certo!
+					
+					chmod go+w /srv/asf/samba/*
+					
 						Máquina Samba
 							
 							vim /etc/ssh/sshd_config
@@ -1700,122 +1694,122 @@
 											Group Policy Management
 											Active Directory Users and Computers
 										
-									Máquina Gateway
-									
-										yum install openvpn -y
-										yum install easy-rsa -y
+						Máquina Gateway
+						
+							yum install openvpn -y
+							yum install easy-rsa -y
 
-										cd /etc/openvpn/
-										/usr/share/easy-rsa/3/easyrsa --help
-										
-										/usr/share/easy-rsa/3/easyrsa init-pki - criação da autoridade certificadora
+							cd /etc/openvpn/
+							/usr/share/easy-rsa/3/easyrsa --help
+							
+							/usr/share/easy-rsa/3/easyrsa init-pki - criação da autoridade certificadora
 
-										/usr/share/easy-rsa/3/easyrsa - construir autoridade certificadora
-											gateway.asf.com
-										cp pki/ca.crt server/
-										cp pki/ca.crt client/
+							/usr/share/easy-rsa/3/easyrsa - construir autoridade certificadora
+								gateway.asf.com
+							cp pki/ca.crt server/
+							cp pki/ca.crt client/
 
-										/usr/share/easy-rsa/3/easyrsa gen-dh
-										cp pki/dh.pem server/
-										cp pki/dh.pem client/
+							/usr/share/easy-rsa/3/easyrsa gen-dh
+							cp pki/dh.pem server/
+							cp pki/dh.pem client/
 
-										/usr/share/easy-rsa/3/easyrsa build-server-full vpn-server nopass - geração do certificado e chave para o servidor
-										cp pki/issued/vpn-server.crt server/
-										cp pki/private/vpn-server.key server/
+							/usr/share/easy-rsa/3/easyrsa build-server-full vpn-server nopass - geração do certificado e chave para o servidor
+							cp pki/issued/vpn-server.crt server/
+							cp pki/private/vpn-server.key server/
 
-										/usr/share/easy-rsa/3/easyrsa build-client-full vpn-client-01 nopass - geração do certificado e chave para o cliente
-										cp pki/issued/vpn-client-01.crt client/
-										cp pki/private/vpn-client-01.key client/
+							/usr/share/easy-rsa/3/easyrsa build-client-full vpn-client-01 nopass - geração do certificado e chave para o cliente
+							cp pki/issued/vpn-client-01.crt client/
+							cp pki/private/vpn-client-01.key client/
 
-										/usr/share/easy-rsa/3/easyrsa gen-crl - revogação de certificados
-										cp pki/crl.pem server/
-										cp pki/crl.pem client/
+							/usr/share/easy-rsa/3/easyrsa gen-crl - revogação de certificados
+							cp pki/crl.pem server/
+							cp pki/crl.pem client/
 
-										openvpn --genkey --secret pki/ta.key - geração da chave para o servidor
-										cp pki/ta.key server/
-										cp pki/ta.key client/
+							openvpn --genkey --secret pki/ta.key - geração da chave para o servidor
+							cp pki/ta.key server/
+							cp pki/ta.key client/
 
-										cp /root/linuxforce/gateway/etc/server.conf server/
-										cp /root/linuxforce/gateway/etc/client.conf client/
+							cp /root/linuxforce/gateway/etc/server.conf server/
+							cp /root/linuxforce/gateway/etc/client.conf client/
 
-										cd server/
-										mkdir /etc/openvpn/ccd -v
-										mkdir /var/log/openvpn -v
+							cd server/
+							mkdir /etc/openvpn/ccd -v
+							mkdir /var/log/openvpn -v
 
-										systemctl enable openvpn-server@server
-										systemctl restart openvpn-server@server
-										systemctl status openvpn-server@server
+							systemctl enable openvpn-server@server
+							systemctl restart openvpn-server@server
+							systemctl status openvpn-server@server
 
-										ip a - deve ter criado um dispositivo chamado tun0, com o ip 10.0.0.100
+							ip a - deve ter criado um dispositivo chamado tun0, com o ip 10.0.0.100
 
-										cd /etc/openvpn/
-										vim /sbim/firewall.sh
-											após a linha 97 , criar uma regra
-												iptables -A INPUT -i tun0 -j ACCEPT
-											remover o comentário da linha 121
-												iptables -A INPUT -p udp -i enp0s9 -s $EXT -d $FWL1 --dport 1194 -j ACCEPT
-											após a linha 142, criar uma regra
-												iptables -A OUTPUT -o tun0 -j ACCEPT
-											incluir na linha 170 antes de FORWARD
-												iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
-											incluir na linha 175 antes da regra #1
-												iptables -A FORWARD -i tun0 -j ACCEPT
-												iptables -A FORWARD -o tun0 -j ACCEPT
-										:wq
+							cd /etc/openvpn/
+							vim /sbim/firewall.sh
+								após a linha 97 , criar uma regra
+									iptables -A INPUT -i tun0 -j ACCEPT
+								remover o comentário da linha 121
+									iptables -A INPUT -p udp -i enp0s9 -s $EXT -d $FWL1 --dport 1194 -j ACCEPT
+								após a linha 142, criar uma regra
+									iptables -A OUTPUT -o tun0 -j ACCEPT
+								incluir na linha 170 antes de FORWARD
+									iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
+								incluir na linha 175 antes da regra #1
+									iptables -A FORWARD -i tun0 -j ACCEPT
+									iptables -A FORWARD -o tun0 -j ACCEPT
+							:wq
 
-										firewall.sh
+							firewall.sh
 
-										LIGAR A MÁQUINA CLIENTE EXTERNO
-										ATRAVÉS DA MÁQUINA Gateway
-											ssh -p 22 analista@200.50.100.100
-												<senha default>
-											deve permitir a conexão
+							LIGAR A MÁQUINA CLIENTE EXTERNO
+							ATRAVÉS DA MÁQUINA Gateway
+								ssh -p 22 analista@200.50.100.100
+									<senha default>
+								deve permitir a conexão
 
-										scp -r -P 22 client analista@200.50.100.100:/tmp
+							scp -r -P 22 client analista@200.50.100.100:/tmp
 
-									Máquina Cliente Externo
+						Máquina Cliente Externo
 
-										apt install openvpn -y
+							apt install openvpn -y
 
-										cp /tmp/client/* /etc/openvpn/client/
+							cp /tmp/client/* /etc/openvpn/client/
 
-										cd /etc/openvpn/client/
-										ls -lh
-										vim client.conf
-											remover a linha 7 pois está duplicada
-												port 1194
-											alterar a linha 16, o valor de 0 [servidor] para 1 [cliente]
-												tls-auth /etc/openvpn/client/ta.key 1
-											alterar a linha 18, de nobody para nogroup
-												group nogroup
-										:wq
+							cd /etc/openvpn/client/
+							ls -lh
+							vim client.conf
+								remover a linha 7 pois está duplicada
+									port 1194
+								alterar a linha 16, o valor de 0 [servidor] para 1 [cliente]
+									tls-auth /etc/openvpn/client/ta.key 1
+								alterar a linha 18, de nobody para nogroup
+									group nogroup
+							:wq
 
-										systemctl restart openvpn-server@client - vai apresentar erro
-										systemctl edit --full openvpn-server@client
-											alterar o WorkingDirectory final de server para client
-												WorkingDirectory=/etc/openvpn/client
-											Ctrl + O
-												<enter>
-											Ctrl + X
-										systemctl enable openvpn-server@client
+							systemctl restart openvpn-server@client - vai apresentar erro
+							systemctl edit --full openvpn-server@client
+								alterar o WorkingDirectory final de server para client
+									WorkingDirectory=/etc/openvpn/client
+								Ctrl + O
+									<enter>
+								Ctrl + X
+							systemctl enable openvpn-server@client
 
-									Máquina Gateway
+						Máquina Gateway
 
-										cd /etc/openvpn/ccd/
+							cd /etc/openvpn/ccd/
 
-										vim vpn-client-01
-											ifconfig-push 10.0.0.200 10.0.0.100
-											push "route 192.168.1.0 255.255.255.0 10.0.0.200"
-										:wq
+							vim vpn-client-01
+								ifconfig-push 10.0.0.200 10.0.0.100
+								push "route 192.168.1.0 255.255.255.0 10.0.0.200"
+							:wq
 
-										systemctl restart openvpn-server@server
+							systemctl restart openvpn-server@server
 
-									Máquina Cliente Externo
+						Máquina Cliente Externo
 
-										systemctl restart openvpn-server@client
+							systemctl restart openvpn-server@client
 
-										ip route
-										ping -c 4 10.0.0.100
-										ping -c 4 192.168.1.100
+							ip route
+							ping -c 4 10.0.0.100
+							ping -c 4 192.168.1.100
 
-										traceroute  192.168.1.100
+							traceroute  192.168.1.100
